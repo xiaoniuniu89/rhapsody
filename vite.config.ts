@@ -18,6 +18,11 @@ export default defineConfig({
       entry: "src/main.ts",
       formats: ["es"],
       fileName: "main"
+    },
+    rollupOptions: {
+    output: {
+      assetFileNames: "[name][extname]"
     }
+  }
   }
 });

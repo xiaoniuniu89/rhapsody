@@ -1,0 +1,27 @@
+{
+  "RHAPSODY": {
+    "ChatWindow": {
+      "Title": "Rhapsody AI GM",
+      "NoApiKey": "No OpenAI API key configured!",
+      "ConfigureKey": "Please set your API key in the module settings.",
+      "Placeholder": "Ask the AI GM something...",
+      "You": "You",
+      "AIGM": "AI GM"
+    },
+    "Settings": {
+      "ApiKey": {
+        "Name": "OpenAI API Key",
+        "Hint": "Enter your OpenAI API key. This will be stored securely in your browser."
+      },
+      "ChatVisibility": {
+        "Name": "Chat Visibility",
+        "Hint": "Who can see the AI GM responses?",
+        "Choices": {
+          "All": "All Players",
+          "GM": "GM Only",
+          "Whisper": "Whisper to Active Player"
+        }
+      }
+    }
+  }
+}

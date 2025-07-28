@@ -1,19 +1,19 @@
 {
   "id": "rhapsody",
-  "title": "Rhapsody - A solo gm tool",
-  "description": "A solo gm tool for generating random encounters, quests, and more.",
+  "title": "Rhapsody - A solo GM tool",
+  "description": "A solo GM tool for generating random encounters, quests, and more.",
   "authors": [
     {
-    "name": "niu",
-    "email": "niuwebdev@gmail.com"
+      "name": "niu",
+      "email": "niuwebdev@gmail.com"
     }
   ],
   "version": "1.0.0",
   "compatibility": {
-    "minimum": "10",
-    "verified": "11"
+    "minimum": "13",
+    "verified": "13"
   },
   "esmodules": [
-  "src/main.ts"
-]
+    "src/main.ts"
+  ]
 }

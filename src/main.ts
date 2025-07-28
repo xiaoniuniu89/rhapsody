@@ -3,8 +3,7 @@
  */
 
 import { RhapsodySettings } from './settings/RhapsodySettings';
-import { ChatApplication } from './chat/ChatApplication.ts';
-import { FloatingButton } from './ui/FloatingButton.ts';
+import { ChatApplication } from './chat/ChatApplication';
 import './styles/rhapsody.css';
 
 // Module ID constant
@@ -53,8 +52,10 @@ Hooks.once('ready', () => {
     return;
   }
 
-  // Only show button for GMs
+  // Only show for GMs
   if (game.user?.isGM) {
-    FloatingButton.create();
+    // Auto-create and render the chat app
+    Rhapsody.chatApp = new ChatApplication();
+    Rhapsody.chatApp.render({ force: true });
   }
 });

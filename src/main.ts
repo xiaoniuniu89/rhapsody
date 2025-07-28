@@ -3,7 +3,7 @@
  */
 
 import { RhapsodySettings } from './settings/RhapsodySettings';
-import { ChatApplication } from './chat/ChatApplication';
+import { RhapsodyPanel } from './ui/RhapsodyPanel';
 import './styles/rhapsody.css';
 
 // Module ID constant
@@ -12,17 +12,10 @@ export const MODULE_ID = 'rhapsody';
 // Global module state
 class Rhapsody {
   static ID = MODULE_ID;
-  static chatApp: ChatApplication | null = null;
+  static panel: RhapsodyPanel | null = null;
 
   static log(...args: any[]) {
     console.log(`${this.ID} |`, ...args);
-  }
-
-  static openChat() {
-    if (!this.chatApp) {
-      this.chatApp = new ChatApplication();
-    }
-    this.chatApp.render({ force: true });
   }
 }
 
@@ -52,10 +45,11 @@ Hooks.once('ready', () => {
     return;
   }
 
-  // Only show for GMs
+  // Only create panel for GMs
   if (game.user?.isGM) {
-    // Auto-create and render the chat app
-    Rhapsody.chatApp = new ChatApplication();
-    Rhapsody.chatApp.render({ force: true });
+    // Check if panel already exists
+    if (!Rhapsody.panel) {
+      Rhapsody.panel = new RhapsodyPanel();
+    }
   }
 });

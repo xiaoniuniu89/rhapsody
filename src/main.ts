@@ -1,55 +1,68 @@
-/**
- * Rhapsody - A Solo GM Tool for Foundry VTT
- */
-
-import { RhapsodySettings } from './settings/RhapsodySettings';
-import { RhapsodyPanel } from './ui/RhapsodyPanel';
+// main.ts
+import { id as moduleId } from "../module.json";
+import RhapsodyApp from "./apps/rhapsodyApp";
 import './styles/rhapsody.css';
 
-// Module ID constant
-export const MODULE_ID = 'rhapsody';
+let rhapsodyApp: RhapsodyApp;
 
-// Global module state
-class Rhapsody {
-  static ID = MODULE_ID;
-  static panel: RhapsodyPanel | null = null;
-
-  static log(...args: any[]) {
-    console.log(`${this.ID} |`, ...args);
-  }
-}
-
-// Make Rhapsody available globally
-declare global {
-  interface Window {
-    Rhapsody: typeof Rhapsody;
-  }
-}
-window.Rhapsody = Rhapsody;
-
-// Initialize the module
-Hooks.once('init', () => {
-  Rhapsody.log('Initializing Rhapsody module');
+/**
+ * Initialize and open Rhapsody
+ */
+Hooks.once("ready", () => {
+  console.log(`🎵 Starting Rhapsody ${moduleId}`);
   
-  // Register module settings
-  RhapsodySettings.registerSettings();
+  // Create and immediately open the app
+  rhapsodyApp = new RhapsodyApp();
+  rhapsodyApp.render({ force: true });
+
+  
+  console.log("🎵 Rhapsody opened!");
 });
 
-// When the game is ready
-Hooks.once('ready', () => {
-  Rhapsody.log('Rhapsody module ready');
+Hooks.on("renderSidebar", (app, html) => {
+  // Find the tabs menu
+  const tabsMenu = html.querySelector('nav.tabs menu.flexcol');
   
-  // Verify we're on a compatible version
-  if (!game.release || game.release.generation < 13) {
-    ui.notifications?.error('Rhapsody requires Foundry VTT V13 or higher');
-    return;
-  }
-
-  // Only create panel for GMs
-  if (game.user?.isGM) {
-    // Check if panel already exists
-    if (!Rhapsody.panel) {
-      Rhapsody.panel = new RhapsodyPanel();
+  if (tabsMenu) {
+    // Create the li element
+    const li = document.createElement('li');
+    
+    // Create the button element matching the existing structure
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ui-control plain icon fa-solid fa-theater-masks';
+    button.setAttribute('data-action', 'tab');
+    button.setAttribute('data-tab', 'rhapsody');
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('data-group', 'primary');
+    button.setAttribute('aria-label', 'Rhapsody');
+    button.setAttribute('aria-controls', 'rhapsody');
+    button.setAttribute('data-tooltip', '');
+    
+    // Create the notification pip div
+    const notificationPip = document.createElement('div');
+    notificationPip.className = 'notification-pip';
+    
+    // Add button click handler
+    button.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  rhapsodyApp.render({ force: true }).then(() => {
+    const messagesContainer = rhapsodyApp.element?.querySelector('.rhapsody-messages');
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
+  });
+});
+
+    
+    // Append button and notification pip to li
+    li.appendChild(button);
+    li.appendChild(notificationPip);
+    
+    // Insert before the collapse button (last li)
+    const collapseButton = tabsMenu.querySelector('li:last-child');
+    tabsMenu.insertBefore(li, collapseButton);
   }
 });

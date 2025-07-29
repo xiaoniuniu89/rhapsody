@@ -1,277 +1,62 @@
-.rhapsody-panel {
-  position: fixed;
-  left: calc(100vw - 480px - 20px);
-  top: calc(100vh - 60px - 20px);
-  height: 60px;      /* collapsed initial height */
-  width: 480px;      /* collapsed initial width */
-  background: #fff;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  color: #333;
-  font-family: Arial, sans-serif;
-  transition: width 0.3s ease, height 0.3s ease, left 0.3s ease, top 0.3s ease;
+.rhapsody-app .window-content {
   display: flex;
   flex-direction: column;
-  border-radius: 6px;
-  user-select: none;
-  overflow: hidden;
-  box-sizing: border-box;
+  height: 100%;
+  max-height: 600px;
+  padding: 6px;
+  width: 700px;
+
 }
 
-/* Expanded State */
-.rhapsody-panel.expanded {
-  height: 600px;
-  top: calc(100vh - 600px - 20px);
-}
-
-/* Collapsed State */
-.rhapsody-panel.collapsed {
-  height: 60px;
-}
-
-.rhapsody-header {
-  background: #0066cc;
-  color: #fff;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: move;
-  border-radius: 6px 6px 0 0;
-  user-select: none;
-}
-
-.rhapsody-header span {
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.minimize-btn {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.5);
-  color: #fff;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.minimize-btn:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.8);
-}
-
-.rhapsody-content {
-  flex: 1;
-  padding: 12px;
-  background: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.rhapsody-content.collapsed {
-  display: none;
-}
-
-.messages {
+.rhapsody-messages {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 12px;
-  padding: 12px;
-  background: #e5e5e5;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  max-height: 450px;
-}
-
-.messages::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messages::-webkit-scrollbar-track {
-  background: #f0f0f0;
-}
-
-.messages::-webkit-scrollbar-thumb {
-  background: #b0b0b0;
-  border-radius: 4px;
-}
-
-.messages::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  padding: 1rem;
 }
 
 .message {
-  margin-bottom: 12px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  max-width: 80%;
-  word-wrap: break-word;
-  line-height: 1.4;
-  font-size: 14px;
-}
-
-.message strong {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 6px;
-  opacity: 0.8;
-  color: #444;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05); /* Very subtle light overlay */
 }
 
 .message.user {
-  background: #d0f0ff;
-  border: 1px solid #a0c4ff;
-  margin-left: auto;
-  text-align: right;
+  background-color: rgba(255, 255, 255, 0.08); /* Slightly lighter for user */
+  margin-left: 2rem;
 }
 
-.message.assistant {
-  background: #f0f0f0;
-  border: 1px solid #ccc;
-  margin-right: auto;
-  text-align: left;
+.message.ai {
+  background-color: rgba(255, 255, 255, 0.03); /* Slightly darker for AI */
+  margin-right: 2rem;
 }
 
-.input-form {
+/* Keep inputs simple, light text on dark background */
+.rhapsody-input {
+  padding: 1rem;
+  border-top: 1px solid #333;
+  color: #ddd;
+}
+
+.input-area {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
-.input-form input {
+.message-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  background: #fff;
-  color: #222;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+  min-height: 40px;
+  color: #ddd;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 0.5rem;
 }
 
-.input-form input:focus {
+/* Optional: subtle focus highlight */
+.message-input:focus {
+  border-color: #007cba;
   outline: none;
-  border-color: #3399ff;
-  box-shadow: 0 0 6px 1px rgba(51, 153, 255, 0.5);
-}
-
-.input-form button {
-  padding: 8px 16px;
-  background: #0066cc;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s ease;
-}
-
-.input-form button:hover:not(:disabled) {
-  background: #004a99;
-}
-
-.input-form button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #bbb;
-}
-
-.api-key-warning {
-  background: #fff3cd;
-  color: #856404;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 6px;
-  text-align: center;
-  border: 1px solid #ffeeba;
-}
-
-.api-key-warning i {
-  display: block;
-  font-size: 18px;
-  margin-bottom: 6px;
-  color: #856404;
-}
-
-.api-key-warning p {
-  margin: 0;
-  font-size: 13px;
-}
-
-/* Resize handle - vertical bar on left edge for width resizing */
-.rhapsody-resize-handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 10px;
-  height: 100%;
-  cursor: ew-resize;
-  z-index: 20;
-  background: rgba(0, 0, 0, 0.05);
-  transition: background 0.2s ease;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-}
-
-.rhapsody-resize-handle:hover {
-  background: rgba(0, 0, 0, 0.15);
-}
-
-.rhapsody-panel {
-  position: fixed;
-  height: 60px;   /* start collapsed height */
-  width: 300px;   /* start collapsed width */
-  background: #fff;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  color: #333;
-  font-family: Arial, sans-serif;
-  transition: width 0.3s ease, height 0.3s ease, left 0.3s ease, top 0.3s ease, bottom 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  border-radius: 6px;
-  user-select: none;
-  overflow: hidden;
-  box-sizing: border-box;
-  /* no fixed top or left here, these are set in JS dynamically */
-}
-
-.rhapsody-panel.expanded {
-  width: 480px;
-  height: 600px;
-}
-
-.rhapsody-header {
-  background: #0066cc;
-  color: #fff;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: move;
-  border-radius: 6px 6px 0 0;
-  user-select: none;
-}
-
-.rhapsody-content {
-  flex: 1;
-  padding: 12px;
-  background: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.rhapsody-content.collapsed {
-  display: none;
-}
-.rhapsody-panel.dragging {
-  transition: none !important;
+  background-color: #353535;
 }

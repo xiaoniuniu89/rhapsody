@@ -109,109 +109,127 @@ export default class RhapsodyApp extends Base {
   }
 
   static async submitForm(
-    this: RhapsodyApp,
-    event: SubmitEvent,
-    form: HTMLFormElement,
-    formData: FormDataExtended
-  ) {
-    const input = formData.get("userMessage")?.toString().trim();
+  this: RhapsodyApp,
+  event: SubmitEvent,
+  form: HTMLFormElement,
+  formData: FormDataExtended
+) {
+  const input = formData.get("userMessage")?.toString().trim();
 
-    if (!input) {
-      ui.notifications?.warn("Please enter a message.");
-      return;
-    }
+  if (!input) {
+    ui.notifications?.warn("Please enter a message.");
+    return;
+  }
 
-    if (!this.apiService.apiKey) {
-      ui.notifications?.error("Please set your DeepSeek API key in module settings.");
-      return;
-    }
+  if (!this.apiService.apiKey) {
+    ui.notifications?.error("Please set your DeepSeek API key in module settings.");
+    return;
+  }
 
-    const userMessage: Message = {
-      id: foundry.utils.randomID(),
-      sender: "user",
-      content: input,
-      timestamp: new Date(),
-      tokenCount: estimateTokens(input)
-    };
+  const userMessage: Message = {
+    id: foundry.utils.randomID(),
+    sender: "user",
+    content: input,
+    timestamp: new Date(),
+    tokenCount: estimateTokens(input)
+  };
 
-    this.currentScene.messages.push(userMessage);
+  this.currentScene.messages.push(userMessage);
+  
+  if (this.contextService.shouldCompressContext(this.currentScene.messages, this.sceneHistory)) {
+    const { updatedMessages, summary } = await this.contextService.compressOlderMessages(this.currentScene.messages);
+    this.currentScene.messages = updatedMessages;
+    this.contextService.setContextSummary(
+      this.contextService.getContextSummary() 
+        ? `${this.contextService.getContextSummary()}\n\n${summary}`
+        : summary
+    );
+  }
+  
+  // Create AI message that we'll update as streaming progresses
+  const aiMessage: Message = {
+    id: foundry.utils.randomID(),
+    sender: "ai",
+    content: '',
+    timestamp: new Date(),
+    isLoading: true
+  };
+  this.currentScene.messages.push(aiMessage);
+  
+  await this.render({ parts: ["messages", "input"] });
+  form.reset();
+
+  try {
+    const messages = await this.contextService.buildContextMessages(
+      this.currentScene.messages.filter(m => m.id !== aiMessage.id), // Exclude the empty AI message
+      this.sceneHistory,
+      game.system.title || game.system.id,
+      game.world.title,
+      canvas.scene?.name || "Unknown Location"
+    );
     
-    if (this.contextService.shouldCompressContext(this.currentScene.messages, this.sceneHistory)) {
-      const { updatedMessages, summary } = await this.contextService.compressOlderMessages(this.currentScene.messages);
-      this.currentScene.messages = updatedMessages;
-      this.contextService.setContextSummary(
-        this.contextService.getContextSummary() 
-          ? `${this.contextService.getContextSummary()}\n\n${summary}`
-          : summary
-      );
+    // Use streaming API
+    let fullResponse = '';
+    for await (const chunk of this.apiService.streamDeepSeekAPI(messages)) {
+      fullResponse += chunk;
+      
+      // Update the message content as it streams
+      aiMessage.content = fullResponse;
+      aiMessage.isLoading = false;
+      
+      // Update just the specific message
+      await this.updateStreamingMessage(aiMessage.id, fullResponse);
     }
     
-    const loadingMessage: Message = {
+    // Final update with token count
+    aiMessage.tokenCount = estimateTokens(fullResponse);
+    this.stateService.saveState(this.currentScene, this.sceneHistory, this.contextService.getContextSummary());
+    
+    // Final render to ensure everything is in sync
+    await this.render({ parts: ["messages", "sceneControls"] });
+    
+    // Scroll to bottom
+    const messagesContainer = this.element?.querySelector('.rhapsody-messages');
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+  } catch (error) {
+    console.error("DeepSeek API error:", error);
+    
+    // Remove the AI message on error
+    this.currentScene.messages = this.currentScene.messages.filter(msg => msg.id !== aiMessage.id);
+    
+    const errorMessage: Message = {
       id: foundry.utils.randomID(),
       sender: "ai",
-      content: 'Thinking',
-      timestamp: new Date(),
-      isLoading: true
+      content: "Sorry, I couldn't get a response. Please check your API key and try again.",
+      timestamp: new Date()
     };
-    this.currentScene.messages.push(loadingMessage);
     
-    this.render({ parts: ["messages", "input"] }).then(() => {
-      const messagesContainer = this.element?.querySelector('.rhapsody-messages');
-      if (messagesContainer) {
+    this.currentScene.messages.push(errorMessage);
+    await this.render({ parts: ["messages"] });
+    
+    ui.notifications?.error("Failed to get AI response. Check your API key and connection.");
+  }
+}
+
+private async updateStreamingMessage(messageId: string, content: string) {
+  const messageElement = this.element?.querySelector(`[data-message-id="${messageId}"] .message-content`);
+  if (messageElement) {
+    messageElement.textContent = content;
+    
+    // Auto-scroll to keep the new content visible
+    const messagesContainer = this.element?.querySelector('.rhapsody-messages');
+    if (messagesContainer) {
+      // Only scroll if user is near the bottom (within 100px)
+      const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+      if (isNearBottom) {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
-    });
-
-    form.reset();
-
-    try {
-      const messages = await this.contextService.buildContextMessages(
-        this.currentScene.messages,
-        this.sceneHistory,
-        game.system.title || game.system.id,
-        game.world.title,
-        canvas.scene?.name || "Unknown Location"
-      );
-      
-      const aiResponse = await this.apiService.callDeepSeekAPI(input, messages);
-      
-      this.currentScene.messages = this.currentScene.messages.filter(msg => msg.id !== loadingMessage.id);
-      
-      const aiMessage: Message = {
-        id: foundry.utils.randomID(),
-        sender: "ai",
-        content: aiResponse,
-        timestamp: new Date(),
-        tokenCount: estimateTokens(aiResponse)
-      };
-
-      this.currentScene.messages.push(aiMessage);
-      this.stateService.saveState(this.currentScene, this.sceneHistory, this.contextService.getContextSummary());
-      
-      this.render({ parts: ["messages", "sceneControls"] }).then(() => {
-        const messagesContainer = this.element?.querySelector('.rhapsody-messages');
-        if (messagesContainer) {
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-      });
-    } catch (error) {
-      console.error("DeepSeek API error:", error);
-      
-      this.currentScene.messages = this.currentScene.messages.filter(msg => msg.id !== loadingMessage.id);
-      
-      const errorMessage: Message = {
-        id: foundry.utils.randomID(),
-        sender: "ai",
-        content: "Sorry, I couldn't get a response. Please check your API key and try again.",
-        timestamp: new Date()
-      };
-      
-      this.currentScene.messages.push(errorMessage);
-      this.render({ parts: ["messages"] });
-      
-      ui.notifications?.error("Failed to get AI response. Check your API key and connection.");
     }
   }
+}
 
   startNewScene(name?: string) {
     this.currentScene = this.sceneService.createNewScene(name);

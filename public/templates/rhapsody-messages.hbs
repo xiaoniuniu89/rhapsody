@@ -10,10 +10,10 @@
       {{/unless}}
     </div>
     <div class="message-content">
-      {{#if isLoading}}
-        <div class="loading-dots">{{content}}<span>.</span><span>.</span><span>.</span></div>
+      {{#if (and isLoading (eq content ""))}}
+        <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
       {{else}}
-        {{content}}
+        {{content}}{{#if (and isLoading content)}}<span class="typing-cursor">▊</span>{{/if}}
       {{/if}}
     </div>
   </div>

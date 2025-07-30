@@ -1,14 +1,14 @@
-// services/apiService.ts
 import type { Message, DeepSeekResponse } from "./types";
 import { id as moduleId } from "../../../module.json";
 
 export class ApiService {
-  private apiKey: string;
+  public readonly apiKey: string;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
+  // Keep the original method for summaries
   async callDeepSeekAPI(userInput: string, messages: any[]): Promise<string> {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -20,7 +20,8 @@ export class ApiService {
         model: 'deepseek-chat',
         messages,
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 1000,
+        stream: false // Keep non-streaming for this method
       })
     });
 
@@ -30,6 +31,64 @@ export class ApiService {
 
     const data: DeepSeekResponse = await response.json();
     return data.choices[0].message.content;
+  }
+
+  // New streaming method for chat
+  async *streamDeepSeekAPI(messages: any[]): AsyncGenerator<string, void, unknown> {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages,
+        temperature: 0.7,
+        max_tokens: 1000,
+        stream: true // Enable streaming
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      
+      // Keep the last incomplete line in the buffer
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          
+          if (data === '[DONE]') {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices[0]?.delta?.content;
+            if (content) {
+              yield content;
+            }
+          } catch (e) {
+            // Skip parsing errors
+            console.warn('Failed to parse streaming data:', e);
+          }
+        }
+      }
+    }
   }
 
   async generateSummary(messages: Message[]): Promise<string> {

@@ -397,28 +397,62 @@ export default class RhapsodyApp extends Base {
       return;
     }
 
-    // Generate scene summary
-    const summary = await this.generateSceneSummary();
-    
-    // Show dialog for editing summary
-    const editedSummary = await this.showSummaryEditDialog(summary);
-    
-    if (editedSummary !== null) {
-      this.currentScene.summary = editedSummary;
+    // Disable buttons and show loading state
+    this.element?.querySelectorAll('[data-action="end-scene"], [data-action="new-scene"]').forEach(btn => {
+      (btn as HTMLButtonElement).disabled = true;
+    });
+
+    // Add loading indicator
+    const loadingMessage: Message = {
+      id: foundry.utils.randomID(),
+      sender: "ai",
+      content: 'Generating scene summary',
+      timestamp: new Date(),
+      isLoading: true
+    };
+    this.currentScene.messages.push(loadingMessage);
+    await this.render({ parts: ["messages"] });
+
+    try {
+      // Generate scene summary
+      const summary = await this.generateSceneSummary();
       
-      // Create journal entry
-      await this.createJournalEntry(this.currentScene);
+      // Remove loading message
+      this.currentScene.messages = this.currentScene.messages.filter(msg => msg.id !== loadingMessage.id);
+      await this.render({ parts: ["messages"] });
       
-      // Archive scene
-      this.sceneHistory.push(this.currentScene);
-      if (this.sceneHistory.length > 5) {
-        this.sceneHistory.shift(); // Keep only last 5 scenes
+      // Show dialog for editing summary
+      const editedSummary = await this.showSummaryEditDialog(summary);
+      
+      if (editedSummary !== null) {
+        this.currentScene.summary = editedSummary;
+        
+        // Create journal entry
+        await this.createJournalEntry(this.currentScene);
+        
+        // Archive scene
+        this.sceneHistory.push(this.currentScene);
+        if (this.sceneHistory.length > 5) {
+          this.sceneHistory.shift(); // Keep only last 5 scenes
+        }
+        
+        // Start new scene
+        this.startNewScene();
+        
+        ui.notifications?.info("Scene ended and journal created!");
       }
+    } catch (error) {
+      console.error("Error ending scene:", error);
+      ui.notifications?.error("Failed to generate scene summary.");
       
-      // Start new scene
-      this.startNewScene();
-      
-      ui.notifications?.info("Scene ended and journal created!");
+      // Remove loading message
+      this.currentScene.messages = this.currentScene.messages.filter(msg => msg.id !== loadingMessage.id);
+      await this.render({ parts: ["messages"] });
+    } finally {
+      // Re-enable buttons
+      this.element?.querySelectorAll('[data-action="end-scene"], [data-action="new-scene"]').forEach(btn => {
+        (btn as HTMLButtonElement).disabled = false;
+      });
     }
   }
 
@@ -467,86 +501,101 @@ export default class RhapsodyApp extends Base {
 
   private async showSummaryEditDialog(summary: string): Promise<string | null> {
     return new Promise((resolve) => {
-      new Dialog({
-        title: "Edit Scene Summary",
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: "Edit Scene Summary"
+        },
         content: `
           <div style="margin-bottom: 10px;">Review and edit the scene summary before saving:</div>
-          <textarea id="scene-summary" style="width: 100%; height: 300px; font-family: inherit;">${summary}</textarea>
+          <textarea name="scene-summary" style="width: 100%; height: 300px; font-family: inherit;">${summary}</textarea>
         `,
-        buttons: {
-          save: {
-            label: "Save",
-            callback: (html) => {
-              const edited = html.find('#scene-summary').val();
-              resolve(edited as string);
-            }
-          },
-          cancel: {
-            label: "Cancel",
-            callback: () => resolve(null)
+        buttons: [{
+          action: "save",
+          label: "Save",
+          icon: "fas fa-save",
+          default: true,
+          callback: (event, button, dialog) => {
+            const textarea = button.form.elements["scene-summary"] as HTMLTextAreaElement;
+            resolve(textarea.value);
+          }
+        }, {
+          action: "cancel",
+          label: "Cancel",
+          icon: "fas fa-times",
+          callback: () => resolve(null)
+        }],
+        submit: (result) => {
+          if (result.action === "save") {
+            const form = dialog.element?.querySelector('form');
+            const textarea = form?.elements.namedItem("scene-summary") as HTMLTextAreaElement;
+            resolve(textarea?.value || summary);
+          } else {
+            resolve(null);
           }
         },
-        default: "save"
-      }).render(true);
+        close: () => resolve(null)
+      });
+      
+      dialog.render(true);
     });
   }
+  
 
-  private async createJournalEntry(scene: Scene) {
-    // Create world-specific folder structure
-    const worldFolderName = game.world.title;
-    const rhapsodyFolderName = "Rhapsody Sessions";
-    
-    // Find or create world folder
-    let worldFolder = game.folders.find(f => 
-      f.name === worldFolderName && 
-      f.type === "JournalEntry" && 
-      !f.folder
+private async createJournalEntry(scene: Scene) {
+  const systemInfo = game.system.title || game.system.id;
+  const sceneName = canvas.scene?.name || "Unknown Location";
+  const worldName = game.world.title;
+  const rhapsodyFolderName = "Rhapsody Sessions";
+
+  // Safer helper that avoids duplicate folders
+  const getOrCreateFolder = async (name: string, parentId: string | null = null): Promise<Folder> => {
+    const folder = game.folders.find(f =>
+      f.name.toLowerCase() === name.toLowerCase()
+
+      // f.name.toLowerCase() === name.toLowerCase() &&
+      // f.type === "JournalEntry" &&
+      // (f.folder ?? null) === parentId
     );
-    
-    if (!worldFolder) {
-      worldFolder = await Folder.create({
-        name: worldFolderName,
-        type: "JournalEntry",
-        parent: null
-      });
-    }
-    
-    // Find or create Rhapsody subfolder within world folder
-    let rhapsodyFolder = game.folders.find(f => 
-      f.name === rhapsodyFolderName && 
-      f.type === "JournalEntry" && 
-      f.folder === worldFolder.id
-    );
-    
-    if (!rhapsodyFolder) {
-      rhapsodyFolder = await Folder.create({
-        name: rhapsodyFolderName,
-        type: "JournalEntry",
-        parent: worldFolder.id
-      });
-    }
 
-    // Include system and scene info in journal
-    const systemInfo = game.system.title || game.system.id;
-    const sceneName = canvas.scene?.name || "Unknown Location";
+    if (folder) return folder;
 
-    await JournalEntry.create({
-      name: scene.name,
-      folder: rhapsodyFolder?.id,
-      pages: [{
-        name: "Summary",
-        type: "text",
-        text: {
-          content: `
-            <h2>${scene.name}</h2>
-            <p><em>${scene.startTime.toLocaleString()}</em></p>
-            <p><strong>System:</strong> ${systemInfo} | <strong>Location:</strong> ${sceneName}</p>
-            ${scene.summary ? `<div>${scene.summary}</div>` : ''}
-          `
-        }
-      }]
+    const created = await Folder.create({
+      name,
+      type: "JournalEntry",
+      folder: parentId ?? null,
+      sorting: "a"
     });
-  }
+
+    return created;
+  };
+
+  // ✅ Corrected hierarchy
+  const topFolder = await getOrCreateFolder(worldName, null);                     // e.g., "Walking Solo"
+  const rhapsodyFolder = await getOrCreateFolder(rhapsodyFolderName, topFolder.id);  // e.g., "Rhapsody Sessions"
+
+  // Create the journal entry
+  await JournalEntry.create({
+    name: scene.name,
+    folder: rhapsodyFolder.id,
+    pages: [{
+      name: "Summary",
+      type: "text",
+      text: {
+        content: `
+          <h2>${scene.name}</h2>
+          <p><em>${scene.startTime.toLocaleString()}</em></p>
+          <p><strong>System:</strong> ${systemInfo} | <strong>Location:</strong> ${sceneName}</p>
+          ${scene.summary ? `<div>${scene.summary}</div>` : ''}
+        `
+      }
+    }]
+  });
+}
+
+
+
+
+  
 
   // Event Handlers
   async _onClickAction(event: PointerEvent, target: HTMLElement) {
@@ -591,6 +640,7 @@ export default class RhapsodyApp extends Base {
   private loadState() {
     try {
       const state = game.settings.get(moduleId, 'rhapsodyState') as any;
+      console.log("Loaded Rhapsody state:", state);
       if (state) {
         this.currentScene = state.currentScene;
         this.sceneHistory = state.sceneHistory || [];

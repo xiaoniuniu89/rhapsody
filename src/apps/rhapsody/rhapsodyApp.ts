@@ -6,9 +6,9 @@ import { JournalService } from "./services/journalService";
 import { SceneService } from "./services/sceneService";
 import { StateService } from "./services/stateService";
 import { SessionService } from "./services/sessionService";
+import { UIService } from "./services/UIService";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-const { DialogV2 } = foundry.applications.api;
 
 const Base = HandlebarsApplicationMixin(ApplicationV2);
 
@@ -56,6 +56,7 @@ export default class RhapsodyApp extends Base {
   private sceneService: SceneService;
   private stateService: StateService;
   private sessionService: SessionService;
+  private uiService: UIService;
 
   constructor(options: any) {
     super(options);
@@ -67,6 +68,7 @@ export default class RhapsodyApp extends Base {
     this.sceneService = new SceneService(this.apiService);
     this.sessionService = new SessionService();
     this.stateService = new StateService();
+    this.uiService = new UIService();
     
     // Load state including sessions
     const state = this.stateService.loadState();
@@ -295,12 +297,10 @@ async restartScene() {
 
   // If scene has messages, confirm first
   if (this.currentScene.messages.length > 0) {
-  const confirmed = await DialogV2.confirm({
-    content: `<p>This will clear all messages in the current scene (${this.currentScene.name}).</p>
-              <p>Are you sure you want to restart?</p>`,
-    rejectClose: false,
-    modal: true
-  });
+    const modalContent = `<p>This will clear all messages in the current scene (${this.currentScene.name}).</p>
+              <p>Are you sure you want to restart?</p>`
+    
+    const confirmed = await this.uiService.confirmModal(modalContent)
 
   if (!confirmed) return;
 }
@@ -330,13 +330,10 @@ async restartScene() {
 
   // Handle empty scenes
   if (this.currentScene.messages.length === 0) {
-    const confirmed = await DialogV2.confirm({
-    content: `<p>Scene ${this.currentScene.number} has no messages.</p>
-                <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`,
-    rejectClose: false,
-    modal: true
-    });
-
+    const modalContent = `<p>Scene ${this.currentScene.number} has no messages.</p>
+              <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`;
+    const confirmed = await this.uiService.confirmModal(modalContent);
+   
     
     if (confirmed) {
       this.startNewScene(undefined, true); // This will increment the scene number
@@ -416,7 +413,9 @@ async restartScene() {
 
   // Session management methods
   async startSession() {
-    const sessionName = await this.promptForSessionName();
+    const sessionName = await this.uiService.promptForSessionName(
+        this.sessionService.getSessionHistory().length + 1
+    );
     if (sessionName !== null) {
       this.sessionService.startNewSession(sessionName || undefined);
       this.startNewScene(); // Automatically start first scene
@@ -427,12 +426,9 @@ async restartScene() {
   }
 
   async endSession() {
-    const confirmed = await DialogV2.confirm({
-        content: "<p>End the current session? This will finalize all scenes.</p>",
-        rejectClose: false,
-        modal: true
-    });
-
+    const modalContent = `<p>End the current session? This will finalize all scenes.</p>`
+    const confirmed = await this.uiService.confirmModal(modalContent);
+    
     if (confirmed) {
       // End current scene if exists
       if (this.currentScene && this.currentScene.messages.length > 0) {
@@ -446,41 +442,6 @@ async restartScene() {
       ui.notifications?.info("Session ended!");
     }
   }
-
-  // Helper method to prompt for session name
-private async promptForSessionName(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const dialog = new DialogV2({
-      window: {
-        title: "Start New Session"
-      },
-      content: `
-        <form>
-          <div style="margin-bottom: 10px;">Enter a name for this session (optional):</div>
-          <input type="text" name="session-name" placeholder="Session ${this.sessionService.getSessionHistory().length + 1}" style="width: 100%;">
-        </form>
-      `,
-      buttons: [{
-        action: "start",
-        label: "Start Session",
-        icon: "fas fa-play",
-        default: true,
-        callback: (event, button, dialog) => {
-          const input = button.form.elements["session-name"] as HTMLInputElement;
-          resolve(input.value || '');
-        }
-      }, {
-        action: "cancel",
-        label: "Cancel",
-        icon: "fas fa-times",
-        callback: () => resolve(null)
-      }],
-    });
-
-    dialog.render(true);
-  });
-}
-
 
 
   async _onClickAction(event: PointerEvent, target: HTMLElement) {
@@ -509,13 +470,9 @@ private async promptForSessionName(): Promise<string | null> {
       await this.clearAllHistory();
       break;
     case 'reset-session-numbers':
-    const resetConfirmed = await DialogV2.confirm({
-  title: "Reset Session Numbering",
-  content: "<p>Reset session numbers to start from 1 again?</p>",
-  rejectClose: false,
-  modal: true
-});
-
+        const modalTitle = "Reset Session Numbering";
+        const modalContent = "<p>Reset session numbers to start from 1 again?</p>"
+        const resetConfirmed = await this.uiService.confirmModal(modalContent, modalTitle);
     
     if (resetConfirmed) {
         this.sessionService.resetSessionNumbering();
@@ -527,17 +484,11 @@ private async promptForSessionName(): Promise<string | null> {
 }
 
   private async clearAllHistory() {
-  const confirmed = await DialogV2.confirm({
-  title: "Clear All History",
-  content: `
-    <p>This will clear all sessions, scenes, messages, and context. Are you sure?</p>
+    const modalTitle = "Clear All History";
+    const modalContent = `<p>This will clear all sessions, scenes, messages, and context. Are you sure?</p> 
     <p><strong>This cannot be undone!</strong></p>
-    <p><em>Note: Session numbering will continue from ${this.sessionService.getState().highestSessionNumber + 1}</em></p>
-  `,
-  rejectClose: false,
-  modal: true
-});
-
+    <p><em>Note: Session numbering will continue from ${this.sessionService.getState().highestSessionNumber + 1}</em></p>`;
+    const confirmed = await this.uiService.confirmModal(modalContent, modalTitle);
 
   if (confirmed) {
     // Clear everything
@@ -591,23 +542,6 @@ private async promptForSessionName(): Promise<string | null> {
   }
 }
 
-Hooks.once('init', () => {
-  game.settings.register(moduleId, 'deepseekApiKey', {
-    name: 'DeepSeek API Key',
-    hint: 'Enter your DeepSeek API key from https://platform.deepseek.com',
-    scope: 'world',
-    config: true,
-    type: String,
-    default: ''
-  });
-  
-  game.settings.register(moduleId, 'rhapsodyState', {
-    scope: 'world',
-    config: false,
-    type: Object,
-    default: {}
-  });
-});
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);

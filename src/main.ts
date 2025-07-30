@@ -19,6 +19,24 @@ Hooks.once("ready", () => {
   console.log("🎵 Rhapsody opened!");
 });
 
+Hooks.once('init', () => {
+  game.settings.register(moduleId, 'deepseekApiKey', {
+    name: 'DeepSeek API Key',
+    hint: 'Enter your DeepSeek API key from https://platform.deepseek.com',
+    scope: 'world',
+    config: true,
+    type: String,
+    default: ''
+  });
+  
+  game.settings.register(moduleId, 'rhapsodyState', {
+    scope: 'world',
+    config: false,
+    type: Object,
+    default: {}
+  });
+});
+
 Hooks.on("renderSidebar", (app, html) => {
   // Find the tabs menu
   const tabsMenu = html.querySelector('nav.tabs menu.flexcol');

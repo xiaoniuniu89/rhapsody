@@ -1,0 +1,12 @@
+<!-- src/public/templates/rhapsody-session-controls.hbs -->
+<div class="session-controls">
+  {{#if hasActiveSession}}
+    <div class="session-info">
+      <span class="session-name">{{sessionName}}</span>
+      <span class="scene-count">({{sceneCount}} scenes)</span>
+    </div>
+    <button type="button" data-action="end-session" class="end-session">End Session</button>
+  {{else}}
+    <button type="button" data-action="start-session" class="start-session">Start New Session</button>
+  {{/if}}
+</div>

@@ -1,5 +1,5 @@
-// services/sceneService.ts
-import type { Scene, Message } from "./types";
+// src/apps/rhapsody/sceneService.ts
+import type { Scene, Message, Session } from "./types";
 import { ApiService } from "./apiService";
 
 export class SceneService {
@@ -9,10 +9,15 @@ export class SceneService {
     this.apiService = apiService;
   }
 
-  createNewScene(name?: string): Scene {
+  createNewScene(name?: string, session?: Session | null): Scene {
+    const sceneNumber = session ? session.sceneCount + 1 : 1;
+    const sceneName = name || `Scene ${sceneNumber} - ${new Date().toLocaleTimeString()}`;
+    
     return {
       id: foundry.utils.randomID(),
-      name: name || `Scene - ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+      name: sceneName,
+      number: sceneNumber,
+      sessionId: session?.id,
       messages: [],
       startTime: new Date()
     };

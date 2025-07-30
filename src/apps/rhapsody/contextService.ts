@@ -1,10 +1,10 @@
 // services/contextService.ts
-import type { Message } from "./types";
+import type { Message, Scene } from "./types";
 import { ApiService } from "./apiService";
 
 export class ContextService {
   private contextSummary: string = '';
-  private maxContextTokens: number = 3000;
+  public readonly maxContextTokens: number = 3000;
   private apiService: ApiService;
 
   constructor(apiService: ApiService) {

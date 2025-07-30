@@ -1,4 +1,3 @@
-// apps/rhapsodyApp.ts
 import { id as moduleId } from "../../../module.json";
 import type { Message, Scene } from "./types";
 import { ApiService } from "./apiService";

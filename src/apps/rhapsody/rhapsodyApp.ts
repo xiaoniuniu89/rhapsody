@@ -272,23 +272,56 @@ export default class RhapsodyApp extends Base {
   }
 
   async _onClickAction(event: PointerEvent, target: HTMLElement) {
-    const action = target.dataset.action;
-    
-    switch (action) {
-      case 'end-scene':
-        await this.endScene();
-        break;
-      case 'new-scene':
-        this.startNewScene();
-        break;
-      case 'toggle-pin':
-        const messageId = target.closest('.message')?.dataset.messageId;
-        if (messageId) {
-          this.togglePinMessage(messageId);
-        }
-        break;
-    }
+  const action = target.dataset.action;
+  
+  switch (action) {
+    case 'end-scene':
+      await this.endScene();
+      break;
+    case 'new-scene':
+      this.startNewScene();
+      break;
+    case 'toggle-pin':
+      const messageId = target.closest('.message')?.dataset.messageId;
+      if (messageId) {
+        this.togglePinMessage(messageId);
+      }
+      break;
+    case 'clear-history':
+      await this.clearAllHistory();
+      break;
   }
+}
+
+// 3. Add the clearAllHistory method to rhapsodyApp.ts
+// Add this new method to the RhapsodyApp class:
+
+private async clearAllHistory() {
+  const confirmed = await Dialog.confirm({
+    title: "Clear All History",
+    content: "<p>This will clear all scenes, messages, and context. Are you sure?</p><p><strong>This cannot be undone!</strong></p>",
+    yes: () => true,
+    no: () => false,
+    defaultYes: false
+  });
+
+  if (confirmed) {
+    // Clear everything
+    this.sceneHistory = [];
+    this.contextService.setContextSummary('');
+    
+    // Start fresh scene
+    this.startNewScene("Fresh Start");
+    
+    // Save the cleared state
+    this.stateService.saveState(this.currentScene, this.sceneHistory, '');
+    
+    // Render everything fresh
+    this.render({ force: true });
+    
+    ui.notifications?.info("All history cleared. Starting fresh!");
+  }
+}
 
   private togglePinMessage(messageId: string) {
     const message = this.currentScene.messages.find(m => m.id === messageId);

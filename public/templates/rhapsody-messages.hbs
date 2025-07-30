@@ -1,12 +1,17 @@
 <div>
 {{#each messages}}
-  <div class="message {{sender}}-message">
-    <div class="message-sender">{{#if (eq sender "user")}}You{{else}}Rhapsody{{/if}}</div>
+  <div class="message {{sender}}-message" data-message-id="{{id}}">
+    <div class="message-header">
+      <span class="message-sender">{{#if (eq sender "user")}}You{{else}}Rhapsody{{/if}}</span>
+      {{#unless isLoading}}
+        <button type="button" data-action="toggle-pin" class="pin-button {{#if isPinned}}pinned{{/if}}">
+          📌
+        </button>
+      {{/unless}}
+    </div>
     <div class="message-content">
       {{#if isLoading}}
-        <div class="loading-dots">
-          {{content}}<span>.</span><span>.</span><span>.</span>
-        </div>
+        <div class="loading-dots">{{content}}<span>.</span><span>.</span><span>.</span></div>
       {{else}}
         {{content}}
       {{/if}}

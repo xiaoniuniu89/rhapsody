@@ -1,4 +1,5 @@
 // apps/journalBrowserApp.ts
+//@ts-nocheck
 import { id as moduleId } from "../../module.json";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;

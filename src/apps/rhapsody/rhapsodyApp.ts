@@ -58,9 +58,10 @@ export default class RhapsodyApp extends Base {
   private sessionService: SessionService;
   private uiService: UIService;
 
-  constructor(options: any) {
+  constructor(options?: any) {
     super(options);
-    const apiKey = game.settings.get(moduleId, "deepseekApiKey") as string;
+    // @ts-ignore
+    const apiKey = game?.settings?.get(moduleId, "deepseekApiKey") as string;
 
     this.apiService = new ApiService(apiKey);
     this.contextService = new ContextService(this.apiService);
@@ -86,7 +87,8 @@ export default class RhapsodyApp extends Base {
     }
   }
 
-  async _prepareContext(options: any) {
+  // @ts-ignore
+  async _prepareContext(options?: any) {
     const totalTokens = this.contextService.getCurrentContextSize(
       this.currentScene?.messages || [],
       this.sceneHistory,
@@ -213,9 +215,9 @@ export default class RhapsodyApp extends Base {
       const messages = await this.contextService.buildContextMessages(
         this.currentScene.messages.filter((m) => m.id !== aiMessage.id),
         this.sceneHistory,
-        game.system.title || game.system.id,
-        game.world.title,
-        canvas.scene?.name || "Unknown Location",
+        game?.system?.title || game?.system?.id || "Unknown System",
+        game?.world?.title || "Unknown World",
+        canvas?.scene?.name || "Unknown Location",
       );
 
       // Use streaming API
@@ -503,6 +505,8 @@ export default class RhapsodyApp extends Base {
         await this.restartScene();
         break;
       case "toggle-pin":
+        // TODO: fix pinning message
+        // @ts-ignore
         const messageId = target.closest(".message")?.dataset.messageId;
         if (messageId) {
           this.togglePinMessage(messageId);
@@ -586,7 +590,7 @@ export default class RhapsodyApp extends Base {
   private saveAllState() {
     const sessionState = this.sessionService.getState();
     this.stateService.saveState(
-      this.currentScene,
+      this.currentScene as Scene,
       this.sceneHistory,
       this.contextService.getContextSummary(),
       sessionState.currentSession,

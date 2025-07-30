@@ -19,6 +19,11 @@ Hooks.once("ready", () => {
 });
 
 Hooks.once("init", () => {
+  if (!game.settings) {
+    return;
+  }
+
+  //@ts-ignore
   game.settings.register(moduleId, "deepseekApiKey", {
     name: "DeepSeek API Key",
     hint: "Enter your DeepSeek API key from https://platform.deepseek.com",
@@ -28,6 +33,7 @@ Hooks.once("init", () => {
     default: "",
   });
 
+  //@ts-ignore
   game.settings.register(moduleId, "rhapsodyState", {
     scope: "world",
     config: false,

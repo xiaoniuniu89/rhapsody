@@ -25,7 +25,8 @@ export class SceneService {
   }
 
   async generateSceneSummary(messages: Message[]): Promise<string> {
-    const systemInfo = game.system.title || game.system.id;
+    const systemInfo =
+      game?.system?.title || game?.system?.id || "Unknown System";
     return this.apiService.generateSceneSummary(messages, systemInfo);
   }
 
@@ -46,7 +47,8 @@ export class SceneService {
             icon: "fas fa-save",
             default: true,
             callback: (event, button, dialog) => {
-              const textarea = button.form.elements[
+              const textarea = button?.form?.elements[
+                // @ts-ignore
                 "scene-summary"
               ] as HTMLTextAreaElement;
               resolve(textarea.value);
@@ -59,7 +61,10 @@ export class SceneService {
             callback: () => resolve(null),
           },
         ],
+        // @ts-ignore
         submit: (result) => {
+          //TODO: fix this type error
+          // @ts-ignore
           if (result.action === "save") {
             const form = dialog.element?.querySelector("form");
             const textarea = form?.elements.namedItem(

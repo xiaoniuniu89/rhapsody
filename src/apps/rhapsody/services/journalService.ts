@@ -6,6 +6,12 @@ export class JournalService {
     scene: Scene,
     session: Session | null,
   ): Promise<void> {
+    if (!game.system || !game.folders || !game.journal || !canvas?.scene) {
+      console.warn(
+        "Rhapsody: JournalService requires game.system, game.folders, and game.journal to be available",
+      );
+      return;
+    }
     const systemInfo = game.system.title || game.system.id;
     const sceneName = canvas.scene?.name || "Unknown Location";
     const worldName = game.world.title;
@@ -90,6 +96,10 @@ export class JournalService {
     name: string,
     parentId: string | null = null,
   ): Promise<any> {
+    if (!game.folders) {
+      console.warn("Rhapsody: game.folders is not available");
+      return null;
+    }
     const folder = game.folders.find(
       (f: any) =>
         f.name === name &&

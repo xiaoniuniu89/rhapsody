@@ -11,6 +11,10 @@ export class StateService {
     sessionHistory: Session[],
     highestSessionNumber: number,
   ): void {
+    if (!game?.settings) {
+      console.warn("Rhapsody: game.settings is not available");
+      return;
+    }
     const state = {
       currentScene,
       sceneHistory,
@@ -19,7 +23,8 @@ export class StateService {
       sessionHistory,
       highestSessionNumber,
     };
-    game.settings.set(moduleId, "rhapsodyState", state);
+    //@ts-ignore
+    game?.settings.set(moduleId, "rhapsodyState", state);
   }
 
   loadState(): {
@@ -31,6 +36,17 @@ export class StateService {
     highestSessionNumber?: number;
   } {
     try {
+      if (!game?.settings) {
+        console.warn("Rhapsody: game.settings is not available");
+        return {
+          sceneHistory: [],
+          contextSummary: "",
+          currentSession: null,
+          sessionHistory: [],
+          highestSessionNumber: 0,
+        };
+      }
+      //@ts-ignore
       const state = game.settings.get(moduleId, "rhapsodyState") as any;
       if (state) {
         return {

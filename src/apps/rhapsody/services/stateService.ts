@@ -4,12 +4,12 @@ import { id as moduleId } from "../../../../module.json";
 
 export class StateService {
   saveState(
-    currentScene: Scene, 
-    sceneHistory: Scene[], 
+    currentScene: Scene,
+    sceneHistory: Scene[],
     contextSummary: string,
     currentSession: Session | null,
     sessionHistory: Session[],
-    highestSessionNumber: number
+    highestSessionNumber: number,
   ): void {
     const state = {
       currentScene,
@@ -17,40 +17,40 @@ export class StateService {
       contextSummary,
       currentSession,
       sessionHistory,
-      highestSessionNumber
+      highestSessionNumber,
     };
-    game.settings.set(moduleId, 'rhapsodyState', state);
+    game.settings.set(moduleId, "rhapsodyState", state);
   }
 
-  loadState(): { 
-    currentScene?: Scene, 
-    sceneHistory: Scene[], 
-    contextSummary: string,
-    currentSession?: Session | null,
-    sessionHistory: Session[],
-    highestSessionNumber?: number
+  loadState(): {
+    currentScene?: Scene;
+    sceneHistory: Scene[];
+    contextSummary: string;
+    currentSession?: Session | null;
+    sessionHistory: Session[];
+    highestSessionNumber?: number;
   } {
     try {
-      const state = game.settings.get(moduleId, 'rhapsodyState') as any;
+      const state = game.settings.get(moduleId, "rhapsodyState") as any;
       if (state) {
         return {
           currentScene: state.currentScene,
           sceneHistory: state.sceneHistory || [],
-          contextSummary: state.contextSummary || '',
+          contextSummary: state.contextSummary || "",
           currentSession: state.currentSession || null,
           sessionHistory: state.sessionHistory || [],
-          highestSessionNumber: state.highestSessionNumber || 0
+          highestSessionNumber: state.highestSessionNumber || 0,
         };
       }
     } catch (e) {
       console.error("Error loading state:", e);
     }
-    return { 
-      sceneHistory: [], 
-      contextSummary: '',
+    return {
+      sceneHistory: [],
+      contextSummary: "",
       currentSession: null,
       sessionHistory: [],
-      highestSessionNumber: 0
+      highestSessionNumber: 0,
     };
   }
 }

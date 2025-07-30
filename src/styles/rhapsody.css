@@ -5,7 +5,6 @@
   max-height: 600px;
   padding: 6px;
   width: 700px;
-
 }
 
 .rhapsody-messages {
@@ -76,7 +75,9 @@
 }
 
 @keyframes blink {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     opacity: 0.2;
   }
   20% {
@@ -97,6 +98,12 @@
 }
 
 @keyframes blink-cursor {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }

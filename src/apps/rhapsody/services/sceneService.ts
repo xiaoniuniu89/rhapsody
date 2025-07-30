@@ -11,15 +11,16 @@ export class SceneService {
 
   createNewScene(name?: string, session?: Session | null): Scene {
     const sceneNumber = session ? session.sceneCount + 1 : 1;
-    const sceneName = name || `Scene ${sceneNumber} - ${new Date().toLocaleTimeString()}`;
-    
+    const sceneName =
+      name || `Scene ${sceneNumber} - ${new Date().toLocaleTimeString()}`;
+
     return {
       id: foundry.utils.randomID(),
       name: sceneName,
       number: sceneNumber,
       sessionId: session?.id,
       messages: [],
-      startTime: new Date()
+      startTime: new Date(),
     };
   }
 
@@ -32,39 +33,46 @@ export class SceneService {
     return new Promise((resolve) => {
       const dialog = new foundry.applications.api.DialogV2({
         window: {
-          title: "Edit Scene Summary"
+          title: "Edit Scene Summary",
         },
         content: `
           <div style="margin-bottom: 10px;">Review and edit the scene summary before saving:</div>
           <textarea name="scene-summary" style="width: 100%; height: 300px; font-family: inherit;">${summary}</textarea>
         `,
-        buttons: [{
-          action: "save",
-          label: "Save",
-          icon: "fas fa-save",
-          default: true,
-          callback: (event, button, dialog) => {
-            const textarea = button.form.elements["scene-summary"] as HTMLTextAreaElement;
-            resolve(textarea.value);
-          }
-        }, {
-          action: "cancel",
-          label: "Cancel",
-          icon: "fas fa-times",
-          callback: () => resolve(null)
-        }],
+        buttons: [
+          {
+            action: "save",
+            label: "Save",
+            icon: "fas fa-save",
+            default: true,
+            callback: (event, button, dialog) => {
+              const textarea = button.form.elements[
+                "scene-summary"
+              ] as HTMLTextAreaElement;
+              resolve(textarea.value);
+            },
+          },
+          {
+            action: "cancel",
+            label: "Cancel",
+            icon: "fas fa-times",
+            callback: () => resolve(null),
+          },
+        ],
         submit: (result) => {
           if (result.action === "save") {
-            const form = dialog.element?.querySelector('form');
-            const textarea = form?.elements.namedItem("scene-summary") as HTMLTextAreaElement;
+            const form = dialog.element?.querySelector("form");
+            const textarea = form?.elements.namedItem(
+              "scene-summary",
+            ) as HTMLTextAreaElement;
             resolve(textarea?.value || summary);
           } else {
             resolve(null);
           }
         },
-        close: () => resolve(null)
+        close: () => resolve(null),
       });
-      
+
       dialog.render(true);
     });
   }

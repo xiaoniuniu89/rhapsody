@@ -23,7 +23,7 @@ interface ActorListContext {
   pcCount: number;
   npcCount: number;
   isEmpty: boolean;
-  filterType: 'all' | 'pc' | 'npc';
+  filterType: "all" | "pc" | "npc";
 }
 
 export default class ActorListApp extends Base {
@@ -32,108 +32,111 @@ export default class ActorListApp extends Base {
     id: "actor-list",
     width: 400,
     height: 200,
-    
+
     window: {
       title: "Actor List Viewer",
       controls: [
         {
-          icon: 'fa-solid fa-refresh',
+          icon: "fa-solid fa-refresh",
           label: "Refresh List",
-          action: "refreshList"
-        }
-      ]
+          action: "refreshList",
+        },
+      ],
     },
-    
+
     actions: {
       setFilter: ActorListApp.setFilter,
       refreshList: ActorListApp.refreshList,
-      viewActor: ActorListApp.viewActor
+      viewActor: ActorListApp.viewActor,
     },
-    
-    classes: ["actor-list-app"]
+
+    classes: ["actor-list-app"],
   };
 
   static PARTS = {
     header: {
       template: `modules/${moduleId}/public/templates/actor-list-header.hbs`,
-      classes: ['actor-header']
+      classes: ["actor-header"],
     },
     filters: {
-      template: `modules/${moduleId}/public/templates/actor-list-filters.hbs`, 
-      classes: ['actor-filters']
+      template: `modules/${moduleId}/public/templates/actor-list-filters.hbs`,
+      classes: ["actor-filters"],
     },
     list: {
       template: `modules/${moduleId}/public/templates/actor-list-items.hbs`,
-      classes: ['actor-list-container'],
-      scrollable: ['.actor-list']
-    }
+      classes: ["actor-list-container"],
+      scrollable: [".actor-list"],
+    },
   };
 
   // Application state (minimal - most data comes from game)
-  private filterType: 'all' | 'pc' | 'npc' = 'all';
+  private filterType: "all" | "pc" | "npc" = "all";
 
   // Main context preparation
   async _prepareContext(options: any): Promise<ActorListContext> {
     console.log("Preparing actor list context");
-    
+
     // Get all actors from the game
     const allActors = this.getAllActors();
-    
+
     // Apply current filter
     const filteredActors = this.getFilteredActors(allActors);
-    
+
     // Calculate stats
-    const pcCount = allActors.filter(actor => actor.isPC).length;
-    const npcCount = allActors.filter(actor => actor.isNPC).length;
-    
+    const pcCount = allActors.filter((actor) => actor.isPC).length;
+    const npcCount = allActors.filter((actor) => actor.isNPC).length;
+
     return {
       actors: filteredActors,
       totalCount: allActors.length,
       pcCount,
       npcCount,
       isEmpty: allActors.length === 0,
-      filterType: this.filterType
+      filterType: this.filterType,
     };
   }
 
   // Part-specific context preparation
-  async _preparePartContext(partId: string, context: ActorListContext): Promise<any> {
+  async _preparePartContext(
+    partId: string,
+    context: ActorListContext,
+  ): Promise<any> {
     switch (partId) {
-      case 'header':
+      case "header":
         return {
           ...context,
           title: "Actors in World",
-          subtitle: this.getSubtitle(context)
+          subtitle: this.getSubtitle(context),
         };
-        
-      case 'filters':
+
+      case "filters":
         return {
           ...context,
           filters: [
-            { 
-              key: 'all', 
-              label: `All (${context.totalCount})`, 
-              active: this.filterType === 'all' 
+            {
+              key: "all",
+              label: `All (${context.totalCount})`,
+              active: this.filterType === "all",
             },
-            { 
-              key: 'pc', 
-              label: `PCs (${context.pcCount})`, 
-              active: this.filterType === 'pc' 
+            {
+              key: "pc",
+              label: `PCs (${context.pcCount})`,
+              active: this.filterType === "pc",
             },
-            { 
-              key: 'npc', 
-              label: `NPCs (${context.npcCount})`, 
-              active: this.filterType === 'npc' 
-            }
-          ]
+            {
+              key: "npc",
+              label: `NPCs (${context.npcCount})`,
+              active: this.filterType === "npc",
+            },
+          ],
         };
-        
-      case 'list':
+
+      case "list":
         return {
           ...context,
-          emptyMessage: this.getEmptyMessage()
+          emptyMessage: this.getEmptyMessage(),
         };
-        
+
       default:
         return context;
     }
@@ -142,17 +145,17 @@ export default class ActorListApp extends Base {
   // Show/hide parts based on data
   _configureRenderOptions(options: any) {
     super._configureRenderOptions(options);
-    
+
     // Always show header
-    options.parts = ['header'];
-    
+    options.parts = ["header"];
+
     // Only show filters if we have actors
     if (!this.isEmpty()) {
-      options.parts.push('filters');
+      options.parts.push("filters");
     }
-    
+
     // Always show list (handles empty state)
-    options.parts.push('list');
+    options.parts.push("list");
   }
 
   // CORE METHOD: Extract actor data from Foundry
@@ -160,9 +163,9 @@ export default class ActorListApp extends Base {
     console.log("Getting actors from game.actors");
 
     console.log("Found actors:", game.actors);
-    
+
     // game.actors is Foundry's collection of all actors
-    return game.actors.map(actor => {
+    return game.actors.map((actor) => {
       // Extract the data we need from each actor document
       return {
         id: actor.id,
@@ -172,10 +175,12 @@ export default class ActorListApp extends Base {
         isPC: actor.type === "character", // Depends on your system
         isNPC: actor.type !== "character",
         // HP example (depends on your game system)
-        hp: actor.system?.attributes?.hp ? {
-          value: actor.system.attributes.hp.value || 0,
-          max: actor.system.attributes.hp.max || 0
-        } : undefined
+        hp: actor.system?.attributes?.hp
+          ? {
+              value: actor.system.attributes.hp.value || 0,
+              max: actor.system.attributes.hp.max || 0,
+            }
+          : undefined,
       };
     });
   }
@@ -183,10 +188,10 @@ export default class ActorListApp extends Base {
   // Filter actors based on current filter
   private getFilteredActors(actors: ActorData[]): ActorData[] {
     switch (this.filterType) {
-      case 'pc':
-        return actors.filter(actor => actor.isPC);
-      case 'npc':
-        return actors.filter(actor => actor.isNPC);
+      case "pc":
+        return actors.filter((actor) => actor.isPC);
+      case "npc":
+        return actors.filter((actor) => actor.isNPC);
       default:
         return actors; // 'all'
     }
@@ -201,11 +206,11 @@ export default class ActorListApp extends Base {
     if (context.isEmpty) {
       return "No actors in world";
     }
-    
+
     switch (this.filterType) {
-      case 'pc':
+      case "pc":
         return `Showing ${context.actors.length} player characters`;
-      case 'npc':
+      case "npc":
         return `Showing ${context.actors.length} NPCs`;
       default:
         return `Showing ${context.actors.length} of ${context.totalCount} actors`;
@@ -216,11 +221,11 @@ export default class ActorListApp extends Base {
     if (this.isEmpty()) {
       return "No actors exist in this world. Create some actors to see them here!";
     }
-    
+
     switch (this.filterType) {
-      case 'pc':
+      case "pc":
         return "No player characters found.";
-      case 'npc':
+      case "npc":
         return "No NPCs found.";
       default:
         return "No actors match the current filter.";
@@ -229,42 +234,56 @@ export default class ActorListApp extends Base {
 
   // ACTION METHODS
 
-  static async setFilter(this: ActorListApp, event: Event, target: HTMLElement) {
-    const filter = target.dataset.filter as 'all' | 'pc' | 'npc';
-    
+  static async setFilter(
+    this: ActorListApp,
+    event: Event,
+    target: HTMLElement,
+  ) {
+    const filter = target.dataset.filter as "all" | "pc" | "npc";
+
     if (filter && filter !== this.filterType) {
       console.log(`Changing filter from ${this.filterType} to ${filter}`);
       this.filterType = filter;
-      
+
       // Re-render parts that depend on filtering
-      this.render({ parts: ['header', 'filters', 'list'] });
+      this.render({ parts: ["header", "filters", "list"] });
     }
   }
 
-  static async refreshList(this: ActorListApp, event: Event, target: HTMLElement) {
+  static async refreshList(
+    this: ActorListApp,
+    event: Event,
+    target: HTMLElement,
+  ) {
     console.log("Refreshing actor list");
-    
+
     // Force a complete re-render to pick up any new/deleted actors
     this.render({ force: true });
-    
+
     ui.notifications?.info("Actor list refreshed");
   }
 
-  static async viewActor(this: ActorListApp, event: Event, target: HTMLElement) {
+  static async viewActor(
+    this: ActorListApp,
+    event: Event,
+    target: HTMLElement,
+  ) {
     const actorId = target.dataset.actorId;
     if (!actorId) return;
 
-    if(!game.actors){return ui.notifications?.error("No actors found in game");}
-    
+    if (!game.actors) {
+      return ui.notifications?.error("No actors found in game");
+    }
+
     // Find the actor in Foundry's collection
     const actor = game.actors.get(actorId);
     if (!actor) {
       ui.notifications?.error("Actor not found");
       return;
     }
-    
+
     console.log("Opening actor sheet for:", actor.name);
-    
+
     // Open the actor's character sheet (Foundry built-in)
     actor.sheet?.render(true);
   }

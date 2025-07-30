@@ -2,14 +2,32 @@
   <span class="scene-name">{{sceneName}}</span>
   <div class="scene-actions">
     {{#if canStartScene}}
-      <button type="button" data-action="restart-scene" class="restart-scene" title="Clear current scene and start over">
-        <i class="fas fa-redo"></i> Restart Scene
+      <button
+        type="button"
+        data-action="restart-scene"
+        class="restart-scene"
+        title="Clear current scene and start over"
+      >
+        <i class="fas fa-redo"></i>
+        Restart Scene
       </button>
-      <button type="button" data-action="end-scene" class="end-scene" title="Save scene and start next">
-        <i class="fas fa-check"></i> End Scene
+      <button
+        type="button"
+        data-action="end-scene"
+        class="end-scene"
+        title="Save scene and start next"
+      >
+        <i class="fas fa-check"></i>
+        End Scene
       </button>
-      <button type="button" data-action="clear-history" class="clear-history" title="Clear all history (for testing)">
-        <i class="fas fa-trash"></i> Clear History
+      <button
+        type="button"
+        data-action="clear-history"
+        class="clear-history"
+        title="Clear all history (for testing)"
+      >
+        <i class="fas fa-trash"></i>
+        Clear History
       </button>
     {{/if}}
   </div>

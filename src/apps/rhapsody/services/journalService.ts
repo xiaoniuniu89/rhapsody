@@ -2,13 +2,16 @@
 import type { Scene, Session } from "../types";
 
 export class JournalService {
-  async createJournalEntry(scene: Scene, session: Session | null): Promise<void> {
+  async createJournalEntry(
+    scene: Scene,
+    session: Session | null,
+  ): Promise<void> {
     const systemInfo = game.system.title || game.system.id;
     const sceneName = canvas.scene?.name || "Unknown Location";
     const worldName = game.world.title;
-    
+
     // Build folder structure based on session
-    const folderPath = session 
+    const folderPath = session
       ? await this.createSessionFolderStructure(worldName, session)
       : await this.createBasicFolderStructure(worldName);
 
@@ -18,21 +21,23 @@ export class JournalService {
     await JournalEntry.create({
       name: scene.name,
       folder: folderPath.id,
-      pages: [{
-        name: "Summary",
-        type: "text",
-        text: {
-          content: `
+      pages: [
+        {
+          name: "Summary",
+          type: "text",
+          text: {
+            content: `
             ${metadata}
             <h2>${scene.name}</h2>
             <p><em>Started: ${scene.startTime.toLocaleString()}</em></p>
             <p><strong>System:</strong> ${systemInfo} | <strong>Location:</strong> ${sceneName}</p>
-            ${session ? `<p><strong>Session:</strong> ${session.name} | <strong>Scene:</strong> ${scene.number}</p>` : ''}
+            ${session ? `<p><strong>Session:</strong> ${session.name} | <strong>Scene:</strong> ${scene.number}</p>` : ""}
             <hr>
-            ${scene.summary ? `<div>${scene.summary}</div>` : ''}
-          `
-        }
-      }]
+            ${scene.summary ? `<div>${scene.summary}</div>` : ""}
+          `,
+          },
+        },
+      ],
     });
   }
 
@@ -42,38 +47,54 @@ export class JournalService {
       sessionId: session?.id || null,
       sessionNumber: session?.number || null,
       sceneNumber: scene.number || null,
-      timestamp: scene.startTime.toISOString()
+      timestamp: scene.startTime.toISOString(),
     };
 
     return `<!-- RHAPSODY_METADATA: ${JSON.stringify(metadata)} -->`;
   }
 
-  private async createSessionFolderStructure(worldName: string, session: Session): Promise<any> {
-  // Option A: Keep flat structure
-  const rhapsodyFolder = await this.getOrCreateFolder("Rhapsody Sessions", null);
-  const sessionFolder = await this.getOrCreateFolder(session.name, rhapsodyFolder.id);
-  return sessionFolder;
-  
-  // Option B: Restore world folder nesting (uncomment if preferred)
-  /*
+  private async createSessionFolderStructure(
+    worldName: string,
+    session: Session,
+  ): Promise<any> {
+    // Option A: Keep flat structure
+    const rhapsodyFolder = await this.getOrCreateFolder(
+      "Rhapsody Sessions",
+      null,
+    );
+    const sessionFolder = await this.getOrCreateFolder(
+      session.name,
+      rhapsodyFolder.id,
+    );
+    return sessionFolder;
+
+    // Option B: Restore world folder nesting (uncomment if preferred)
+    /*
   const worldFolder = await this.getOrCreateFolder(worldName, null);
   const rhapsodyFolder = await this.getOrCreateFolder("Rhapsody Sessions", worldFolder.id);
   const sessionFolder = await this.getOrCreateFolder(session.name, rhapsodyFolder.id);
   return sessionFolder;
   */
-}
+  }
 
   private async createBasicFolderStructure(worldName: string): Promise<any> {
     const topFolder = await this.getOrCreateFolder(worldName, null);
-    const rhapsodyFolder = await this.getOrCreateFolder("Rhapsody Sessions", topFolder.id);
+    const rhapsodyFolder = await this.getOrCreateFolder(
+      "Rhapsody Sessions",
+      topFolder.id,
+    );
     return rhapsodyFolder;
   }
 
-  private async getOrCreateFolder(name: string, parentId: string | null = null): Promise<any> {
-    const folder = game.folders.find((f: any) =>
-      f.name === name &&
-      f.type === "JournalEntry" &&
-      (f.folder?.id || null) === parentId
+  private async getOrCreateFolder(
+    name: string,
+    parentId: string | null = null,
+  ): Promise<any> {
+    const folder = game.folders.find(
+      (f: any) =>
+        f.name === name &&
+        f.type === "JournalEntry" &&
+        (f.folder?.id || null) === parentId,
     );
 
     if (folder) return folder;
@@ -81,7 +102,7 @@ export class JournalService {
     const created = await Folder.create({
       name,
       type: "JournalEntry",
-      folder: parentId
+      folder: parentId,
     });
 
     return created;

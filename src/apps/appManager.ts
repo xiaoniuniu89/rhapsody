@@ -3,7 +3,7 @@ import RhapsodyApp from "./rhapsodyApp";
 
 export class AppManager {
   private rhapsodyApp: RhapsodyApp | null = null;
-  
+
   /**
    * Initialize the Rhapsody app
    */
@@ -11,7 +11,7 @@ export class AppManager {
     console.log("Initializing Rhapsody app...");
     this.rhapsodyApp = new RhapsodyApp();
   }
-  
+
   /**
    * Open the Rhapsody chat
    */
@@ -23,7 +23,7 @@ export class AppManager {
       ui.notifications?.error("Rhapsody not ready");
     }
   }
-  
+
   /**
    * Close Rhapsody
    */
@@ -32,7 +32,7 @@ export class AppManager {
       this.rhapsodyApp.close();
     }
   }
-  
+
   /**
    * Get the app instance (for external access)
    */

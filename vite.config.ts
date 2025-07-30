@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
 
 export default defineConfig({
   base: "/modules/rhapsody/",
@@ -10,19 +10,19 @@ export default defineConfig({
         target: "ws://localhost:8080",
         ws: true,
       },
-    }
+    },
   },
   build: {
     outDir: "dist",
     lib: {
       entry: "src/main.ts",
       formats: ["es"],
-      fileName: "main"
+      fileName: "main",
     },
     rollupOptions: {
-    output: {
-      assetFileNames: "[name][extname]"
-    }
-  }
-  }
+      output: {
+        assetFileNames: "[name][extname]",
+      },
+    },
+  },
 });

@@ -22,13 +22,14 @@ export class SessionService {
 
     this.highestSessionNumber++;
     const sessionNumber = this.sessionHistory.length + 1;
-    
+
     this.currentSession = {
       id: foundry.utils.randomID(),
       number: sessionNumber,
-      name: name || `Session ${sessionNumber} - ${new Date().toLocaleDateString()}`,
+      name:
+        name || `Session ${sessionNumber} - ${new Date().toLocaleDateString()}`,
       startTime: new Date(),
-      sceneCount: 0
+      sceneCount: 0,
     };
 
     return this.currentSession;
@@ -41,10 +42,10 @@ export class SessionService {
 
     this.currentSession.endTime = new Date();
     this.sessionHistory.push(this.currentSession);
-    
+
     const endedSession = this.currentSession;
     this.currentSession = null;
-    
+
     return endedSession;
   }
 
@@ -68,28 +69,29 @@ export class SessionService {
       this.sessionHistory = state.sessionHistory || [];
 
       this.highestSessionNumber = state.highestSessionNumber || 0;
-      
+
       // If no stored highest number, calculate from existing sessions
       if (this.highestSessionNumber === 0) {
         const allSessions = [...this.sessionHistory];
         if (this.currentSession) allSessions.push(this.currentSession);
-        
-        this.highestSessionNumber = allSessions.reduce((max, session) => 
-          Math.max(max, session.number || 0), 0
+
+        this.highestSessionNumber = allSessions.reduce(
+          (max, session) => Math.max(max, session.number || 0),
+          0,
         );
       }
     }
   }
 
-  getState(): { 
-    currentSession: Session | null, 
-    sessionHistory: Session[], 
-    highestSessionNumber: number 
+  getState(): {
+    currentSession: Session | null;
+    sessionHistory: Session[];
+    highestSessionNumber: number;
   } {
     return {
       currentSession: this.currentSession,
       sessionHistory: this.sessionHistory,
-      highestSessionNumber: this.highestSessionNumber
+      highestSessionNumber: this.highestSessionNumber,
     };
   }
 

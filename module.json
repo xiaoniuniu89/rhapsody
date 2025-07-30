@@ -13,7 +13,5 @@
     "minimum": "13",
     "verified": "13"
   },
-  "esmodules": [
-    "src/main.ts"
-  ]
+  "esmodules": ["src/main.ts"]
 }

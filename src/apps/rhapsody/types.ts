@@ -20,7 +20,7 @@ export interface Scene {
 
 export interface Message {
   id: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   content: string;
   timestamp: Date;
   isLoading?: boolean;
@@ -32,7 +32,6 @@ export interface DeepSeekResponse {
   choices: Array<{
     message: {
       content: string;
-    }
+    };
   }>;
 }
-

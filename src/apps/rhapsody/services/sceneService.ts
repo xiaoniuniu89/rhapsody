@@ -47,6 +47,7 @@ export class SceneService {
             icon: "fas fa-save",
             default: true,
             callback: (event, button, dialog) => {
+              console.log(event, dialog);
               const textarea = button?.form?.elements[
                 // @ts-ignore
                 "scene-summary"

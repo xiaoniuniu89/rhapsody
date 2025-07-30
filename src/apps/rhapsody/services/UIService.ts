@@ -20,6 +20,7 @@ export class UIService {
             icon: "fas fa-play",
             default: true,
             callback: (event, button) => {
+              console.log(event, button);
               const input = button.querySelector(
                 'input[name="session-name"]',
               ) as HTMLInputElement;

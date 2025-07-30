@@ -9,6 +9,7 @@ export class ApiService {
 
   // Keep the original method for summaries
   async callDeepSeekAPI(userInput: string, messages: any[]): Promise<string> {
+    console.log("user input", userInput);
     const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {

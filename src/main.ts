@@ -42,6 +42,7 @@ Hooks.once("init", () => {
   });
 });
 
+//@ts-ignore
 Hooks.on("renderSidebar", (app, html) => {
   // Find the tabs menu
   const tabsMenu = html.querySelector("nav.tabs menu.flexcol");

@@ -1,5 +1,5 @@
 // src/apps/rhapsody/sessionService.ts
-import type { Session, Scene } from "../types";
+import type { Session } from "../types";
 
 export class SessionService {
   private currentSession: Session | null = null;

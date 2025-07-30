@@ -63,6 +63,7 @@ export class JournalService {
     worldName: string,
     session: Session,
   ): Promise<any> {
+    console.log("creating session folder structure for", worldName);
     // Option A: Keep flat structure
     const rhapsodyFolder = await this.getOrCreateFolder(
       "Rhapsody Sessions",

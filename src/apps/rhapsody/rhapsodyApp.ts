@@ -1,5 +1,5 @@
 import { id as moduleId } from "../../../module.json";
-import type { Message, Scene, Session } from "./types";
+import type { Message, Scene } from "./types";
 import { ApiService } from "./services/apiService";
 import { ContextService } from "./services/contextService";
 import { JournalService } from "./services/journalService";
@@ -145,6 +145,8 @@ export default class RhapsodyApp extends Base {
     form: HTMLFormElement,
     formData: FormDataExtended,
   ) {
+    console.log("submit event", event);
+
     // Check if session is active
     if (!this.sessionService.hasActiveSession()) {
       ui.notifications?.warn("Please start a session first!");
@@ -489,6 +491,7 @@ export default class RhapsodyApp extends Base {
   }
 
   async _onClickAction(event: PointerEvent, target: HTMLElement) {
+    console.log("event", event);
     const action = target.dataset.action;
 
     switch (action) {

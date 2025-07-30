@@ -42,7 +42,9 @@ export class UIService {
 
   async confirmModal(content?: string, title?: string): Promise<boolean> {
     const confirmed = await DialogV2.confirm({
-      title: title || "Confirm Action",
+      window: {
+        title: title || "Confirm",
+      },
       content: content || "Are you sure?",
       rejectClose: false,
       modal: true,

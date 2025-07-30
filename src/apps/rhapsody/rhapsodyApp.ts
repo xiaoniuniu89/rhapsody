@@ -19,7 +19,7 @@ export default class RhapsodyApp extends Base {
     id: "rhapsody-chat",
     resizable: true,
     window: {
-      title: "🎵 Rhapsody GM",
+      title: "Rhapsody GM",
     },
     form: {
       handler: RhapsodyApp.submitForm,
@@ -541,8 +541,7 @@ export default class RhapsodyApp extends Base {
   private async clearAllHistory() {
     const modalTitle = "Clear All History";
     const modalContent = `<p>This will clear all sessions, scenes, messages, and context. Are you sure?</p> 
-    <p><strong>This cannot be undone!</strong></p>
-    <p><em>Note: Session numbering will continue from ${this.sessionService.getState().highestSessionNumber + 1}</em></p>`;
+    <p><strong>This cannot be undone!</strong></p>`;
     const confirmed = await this.uiService.confirmModal(
       modalContent,
       modalTitle,

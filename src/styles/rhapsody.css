@@ -89,3 +89,14 @@
   color: #666;
   font-style: italic;
 }
+
+.typing-cursor {
+  animation: blink-cursor 1s infinite;
+  color: #666;
+  font-weight: normal;
+}
+
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}

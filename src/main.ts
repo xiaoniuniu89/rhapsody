@@ -1,6 +1,6 @@
 // main.ts
 import { id as moduleId } from "../module.json";
-import RhapsodyApp from "./apps/rhapsodyApp";
+import RhapsodyApp from "./apps/rhapsody/rhapsodyApp";
 import './styles/rhapsody.css';
 
 let rhapsodyApp: RhapsodyApp;

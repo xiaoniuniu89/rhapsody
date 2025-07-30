@@ -1,5 +1,5 @@
 // services/contextService.ts
-import type { Message, Scene } from "./types";
+import type { Message, Scene } from "../types";
 import { ApiService } from "./apiService";
 
 export class ContextService {

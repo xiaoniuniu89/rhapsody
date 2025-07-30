@@ -1,10 +1,10 @@
 // src/apps/rhapsody/sessionService.ts
-import type { Session, Scene } from "./types";
-import { id as moduleId } from "../../../module.json";
+import type { Session, Scene } from "../types";
 
 export class SessionService {
   private currentSession: Session | null = null;
   private sessionHistory: Session[] = [];
+  private highestSessionNumber: number = 0;
 
   getCurrentSession(): Session | null {
     return this.currentSession;
@@ -20,6 +20,7 @@ export class SessionService {
       this.endCurrentSession();
     }
 
+    this.highestSessionNumber++;
     const sessionNumber = this.sessionHistory.length + 1;
     
     this.currentSession = {
@@ -65,13 +66,34 @@ export class SessionService {
     if (state) {
       this.currentSession = state.currentSession || null;
       this.sessionHistory = state.sessionHistory || [];
+
+      this.highestSessionNumber = state.highestSessionNumber || 0;
+      
+      // If no stored highest number, calculate from existing sessions
+      if (this.highestSessionNumber === 0) {
+        const allSessions = [...this.sessionHistory];
+        if (this.currentSession) allSessions.push(this.currentSession);
+        
+        this.highestSessionNumber = allSessions.reduce((max, session) => 
+          Math.max(max, session.number || 0), 0
+        );
+      }
     }
   }
 
-  getState(): { currentSession: Session | null, sessionHistory: Session[] } {
+  getState(): { 
+    currentSession: Session | null, 
+    sessionHistory: Session[], 
+    highestSessionNumber: number 
+  } {
     return {
       currentSession: this.currentSession,
-      sessionHistory: this.sessionHistory
+      sessionHistory: this.sessionHistory,
+      highestSessionNumber: this.highestSessionNumber
     };
+  }
+
+  resetSessionNumbering(): void {
+    this.highestSessionNumber = 0;
   }
 }

@@ -1,5 +1,5 @@
 // src/apps/rhapsody/sceneService.ts
-import type { Scene, Message, Session } from "./types";
+import type { Scene, Message, Session } from "../types";
 import { ApiService } from "./apiService";
 
 export class SceneService {

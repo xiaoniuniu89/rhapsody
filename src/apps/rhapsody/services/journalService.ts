@@ -1,5 +1,5 @@
 // src/apps/rhapsody/journalService.ts
-import type { Scene, Session } from "./types";
+import type { Scene, Session } from "../types";
 
 export class JournalService {
   async createJournalEntry(scene: Scene, session: Session | null): Promise<void> {

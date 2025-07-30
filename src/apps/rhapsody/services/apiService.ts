@@ -1,5 +1,4 @@
-import type { Message, DeepSeekResponse } from "./types";
-import { id as moduleId } from "../../../module.json";
+import type { Message, DeepSeekResponse } from "../types";
 
 export class ApiService {
   public readonly apiKey: string;

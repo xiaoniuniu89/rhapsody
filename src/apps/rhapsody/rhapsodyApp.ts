@@ -1,13 +1,14 @@
 import { id as moduleId } from "../../../module.json";
 import type { Message, Scene, Session } from "./types";
-import { ApiService } from "./apiService";
-import { ContextService } from "./contextService";
-import { JournalService } from "./journalService";
-import { SceneService } from "./sceneService";
-import { StateService } from "./stateService";
-import { SessionService } from "./sessionService";
+import { ApiService } from "./services/apiService";
+import { ContextService } from "./services/contextService";
+import { JournalService } from "./services/journalService";
+import { SceneService } from "./services/sceneService";
+import { StateService } from "./services/stateService";
+import { SessionService } from "./services/sessionService";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+const { DialogV2 } = foundry.applications.api;
 
 const Base = HandlebarsApplicationMixin(ApplicationV2);
 
@@ -294,17 +295,15 @@ async restartScene() {
 
   // If scene has messages, confirm first
   if (this.currentScene.messages.length > 0) {
-    const confirmed = await Dialog.confirm({
-      title: "Restart Scene",
-      content: `<p>This will clear all messages in the current scene (${this.currentScene.name}).</p>
-                <p>Are you sure you want to restart?</p>`,
-      yes: () => true,
-      no: () => false,
-      defaultYes: false
-    });
+  const confirmed = await DialogV2.confirm({
+    content: `<p>This will clear all messages in the current scene (${this.currentScene.name}).</p>
+              <p>Are you sure you want to restart?</p>`,
+    rejectClose: false,
+    modal: true
+  });
 
-    if (!confirmed) return;
-  }
+  if (!confirmed) return;
+}
 
   // Clear messages but keep the same scene
   this.currentScene.messages = [];
@@ -331,14 +330,13 @@ async restartScene() {
 
   // Handle empty scenes
   if (this.currentScene.messages.length === 0) {
-    const confirmed = await Dialog.confirm({
-      title: "Skip Empty Scene?",
-      content: `<p>Scene ${this.currentScene.number} has no messages.</p>
+    const confirmed = await DialogV2.confirm({
+    content: `<p>Scene ${this.currentScene.number} has no messages.</p>
                 <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`,
-      yes: () => true,
-      no: () => false,
-      defaultYes: true
+    rejectClose: false,
+    modal: true
     });
+
     
     if (confirmed) {
       this.startNewScene(undefined, true); // This will increment the scene number
@@ -429,12 +427,10 @@ async restartScene() {
   }
 
   async endSession() {
-    const confirmed = await Dialog.confirm({
-      title: "End Session",
-      content: "<p>End the current session? This will finalize all scenes.</p>",
-      yes: () => true,
-      no: () => false,
-      defaultYes: false
+    const confirmed = await DialogV2.confirm({
+        content: "<p>End the current session? This will finalize all scenes.</p>",
+        rejectClose: false,
+        modal: true
     });
 
     if (confirmed) {
@@ -452,37 +448,40 @@ async restartScene() {
   }
 
   // Helper method to prompt for session name
-  private async promptForSessionName(): Promise<string | null> {
-    return new Promise((resolve) => {
-      const dialog = new foundry.applications.api.DialogV2({
-        window: {
-          title: "Start New Session"
-        },
-        content: `
+private async promptForSessionName(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const dialog = new DialogV2({
+      window: {
+        title: "Start New Session"
+      },
+      content: `
+        <form>
           <div style="margin-bottom: 10px;">Enter a name for this session (optional):</div>
           <input type="text" name="session-name" placeholder="Session ${this.sessionService.getSessionHistory().length + 1}" style="width: 100%;">
-        `,
-        buttons: [{
-          action: "start",
-          label: "Start Session",
-          icon: "fas fa-play",
-          default: true,
-          callback: (event, button, dialog) => {
-            const input = button.form.elements["session-name"] as HTMLInputElement;
-            resolve(input.value || '');
-          }
-        }, {
-          action: "cancel",
-          label: "Cancel",
-          icon: "fas fa-times",
-          callback: () => resolve(null)
-        }],
-        close: () => resolve(null)
-      });
-      
-      dialog.render(true);
+        </form>
+      `,
+      buttons: [{
+        action: "start",
+        label: "Start Session",
+        icon: "fas fa-play",
+        default: true,
+        callback: (event, button, dialog) => {
+          const input = button.form.elements["session-name"] as HTMLInputElement;
+          resolve(input.value || '');
+        }
+      }, {
+        action: "cancel",
+        label: "Cancel",
+        icon: "fas fa-times",
+        callback: () => resolve(null)
+      }],
     });
-  }
+
+    dialog.render(true);
+  });
+}
+
+
 
   async _onClickAction(event: PointerEvent, target: HTMLElement) {
   const action = target.dataset.action;
@@ -509,37 +508,63 @@ async restartScene() {
     case 'clear-history':
       await this.clearAllHistory();
       break;
+    case 'reset-session-numbers':
+    const resetConfirmed = await DialogV2.confirm({
+  title: "Reset Session Numbering",
+  content: "<p>Reset session numbers to start from 1 again?</p>",
+  rejectClose: false,
+  modal: true
+});
+
+    
+    if (resetConfirmed) {
+        this.sessionService.resetSessionNumbering();
+        this.saveAllState();
+        ui.notifications?.info("Session numbering reset. Next session will be Session 1.");
+    }
+    break;
   }
 }
 
   private async clearAllHistory() {
-    const confirmed = await Dialog.confirm({
-      title: "Clear All History",
-      content: "<p>This will clear all sessions, scenes, messages, and context. Are you sure?</p><p><strong>This cannot be undone!</strong></p>",
-      yes: () => true,
-      no: () => false,
-      defaultYes: false
-    });
+  const confirmed = await DialogV2.confirm({
+  title: "Clear All History",
+  content: `
+    <p>This will clear all sessions, scenes, messages, and context. Are you sure?</p>
+    <p><strong>This cannot be undone!</strong></p>
+    <p><em>Note: Session numbering will continue from ${this.sessionService.getState().highestSessionNumber + 1}</em></p>
+  `,
+  rejectClose: false,
+  modal: true
+});
 
-    if (confirmed) {
-      // Clear everything including sessions
-      this.sceneHistory = [];
-      this.contextService.setContextSummary('');
-      this.sessionService.endCurrentSession();
-      this.sessionService.loadState({ currentSession: null, sessionHistory: [] });
-      
-      // Clear current scene
-      this.currentScene = null;
-      
-      // Save the cleared state
-      this.saveAllState();
-      
-      // Render everything fresh
-      this.render({ force: true });
-      
-      ui.notifications?.info("All history cleared. Start a new session to begin!");
-    }
+
+  if (confirmed) {
+    // Clear everything
+    this.sceneHistory = [];
+    this.contextService.setContextSummary('');
+    this.sessionService.endCurrentSession();
+    
+    // Clear session history but keep the highest number
+    const currentHighest = this.sessionService.getState().highestSessionNumber;
+    this.sessionService.loadState({ 
+      currentSession: null, 
+      sessionHistory: [],
+      highestSessionNumber: currentHighest // Preserve the counter
+    });
+    
+    // Clear current scene
+    this.currentScene = null;
+    
+    // Save the cleared state
+    this.saveAllState();
+    
+    // Render everything fresh
+    this.render({ force: true });
+    
+    ui.notifications?.info("All history cleared. Start a new session to begin!");
   }
+}
 
   private togglePinMessage(messageId: string) {
     if (!this.currentScene) return;
@@ -560,7 +585,8 @@ async restartScene() {
       this.sceneHistory,
       this.contextService.getContextSummary(),
       sessionState.currentSession,
-      sessionState.sessionHistory
+      sessionState.sessionHistory,
+      sessionState.highestSessionNumber
     );
   }
 }

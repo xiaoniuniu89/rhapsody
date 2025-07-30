@@ -1,6 +1,6 @@
 // src/apps/rhapsody/stateService.ts
-import type { Scene, Session } from "./types";
-import { id as moduleId } from "../../../module.json";
+import type { Scene, Session } from "../types";
+import { id as moduleId } from "../../../../module.json";
 
 export class StateService {
   saveState(
@@ -8,14 +8,16 @@ export class StateService {
     sceneHistory: Scene[], 
     contextSummary: string,
     currentSession: Session | null,
-    sessionHistory: Session[]
+    sessionHistory: Session[],
+    highestSessionNumber: number
   ): void {
     const state = {
       currentScene,
       sceneHistory,
       contextSummary,
       currentSession,
-      sessionHistory
+      sessionHistory,
+      highestSessionNumber
     };
     game.settings.set(moduleId, 'rhapsodyState', state);
   }
@@ -25,7 +27,8 @@ export class StateService {
     sceneHistory: Scene[], 
     contextSummary: string,
     currentSession?: Session | null,
-    sessionHistory: Session[]
+    sessionHistory: Session[],
+    highestSessionNumber?: number
   } {
     try {
       const state = game.settings.get(moduleId, 'rhapsodyState') as any;
@@ -35,7 +38,8 @@ export class StateService {
           sceneHistory: state.sceneHistory || [],
           contextSummary: state.contextSummary || '',
           currentSession: state.currentSession || null,
-          sessionHistory: state.sessionHistory || []
+          sessionHistory: state.sessionHistory || [],
+          highestSessionNumber: state.highestSessionNumber || 0
         };
       }
     } catch (e) {
@@ -45,7 +49,8 @@ export class StateService {
       sceneHistory: [], 
       contextSummary: '',
       currentSession: null,
-      sessionHistory: []
+      sessionHistory: [],
+      highestSessionNumber: 0
     };
   }
 }

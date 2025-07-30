@@ -60,3 +60,32 @@
   outline: none;
   background-color: #353535;
 }
+
+/* Animated loading dots */
+.loading-dots span {
+  animation: blink 1.4s infinite;
+  animation-fill-mode: both;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0%, 60%, 100% {
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 1;
+  }
+}
+
+/* Optional: style the loading message differently */
+.rhapsody-messages .loading-dots {
+  color: #666;
+  font-style: italic;
+}

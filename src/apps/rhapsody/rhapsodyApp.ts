@@ -7,6 +7,7 @@ import { SceneService } from "./services/sceneService";
 import { StateService } from "./services/stateService";
 import { SessionService } from "./services/sessionService";
 import { UIService } from "./services/UIService";
+import { MarkdownService } from "./services/markdownService";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -175,7 +176,7 @@ export default class RhapsodyApp extends Base {
     const userMessage: Message = {
       id: foundry.utils.randomID(),
       sender: "user",
-      content: input,
+      content: MarkdownService.escapeHtml(input), // Store user input as escaped HTML
       timestamp: new Date(),
       tokenCount: estimateTokens(input),
     };
@@ -205,6 +206,7 @@ export default class RhapsodyApp extends Base {
       id: foundry.utils.randomID(),
       sender: "ai",
       content: "",
+      rawContent: "", // Track the raw markdown as it streams
       timestamp: new Date(),
       isLoading: true,
     };
@@ -223,20 +225,26 @@ export default class RhapsodyApp extends Base {
       );
 
       // Use streaming API
-      let fullResponse = "";
+      let fullMarkdown = "";
       for await (const chunk of this.apiService.streamDeepSeekAPI(messages)) {
-        fullResponse += chunk;
+        fullMarkdown += chunk;
 
-        // Update the message content as it streams
-        aiMessage.content = fullResponse;
+        // Convert accumulated markdown to HTML for display
+        const html = MarkdownService.convertStreamingChunk(fullMarkdown);
+
+        // Update the message with converted HTML
+        aiMessage.content = html;
+        aiMessage.rawContent = fullMarkdown;
         aiMessage.isLoading = false;
 
-        // Update just the specific message
-        await this.updateStreamingMessage(aiMessage.id, fullResponse);
+        // Update just the specific message with HTML
+        await this.updateStreamingMessage(aiMessage.id, html);
       }
 
-      // Final update with token count
-      aiMessage.tokenCount = estimateTokens(fullResponse);
+      // Final conversion with complete markdown
+      aiMessage.content = MarkdownService.convertToHTML(fullMarkdown);
+      aiMessage.rawContent = fullMarkdown;
+      aiMessage.tokenCount = estimateTokens(fullMarkdown);
       this.saveAllState();
 
       // Final render to ensure everything is in sync
@@ -259,8 +267,9 @@ export default class RhapsodyApp extends Base {
       const errorMessage: Message = {
         id: foundry.utils.randomID(),
         sender: "ai",
-        content:
+        content: MarkdownService.escapeHtml(
           "Sorry, I couldn't get a response. Please check your API key and try again.",
+        ),
         timestamp: new Date(),
       };
 
@@ -273,12 +282,13 @@ export default class RhapsodyApp extends Base {
     }
   }
 
-  private async updateStreamingMessage(messageId: string, content: string) {
+  private async updateStreamingMessage(messageId: string, htmlContent: string) {
     const messageElement = this.element?.querySelector(
       `[data-message-id="${messageId}"] .message-content`,
     );
     if (messageElement) {
-      messageElement.textContent = content;
+      // Use innerHTML to render HTML content
+      messageElement.innerHTML = htmlContent;
 
       // Auto-scroll to keep the new content visible
       const messagesContainer =
@@ -356,12 +366,17 @@ export default class RhapsodyApp extends Base {
 
     // Handle empty scenes
     if (this.currentScene.messages.length === 0) {
-      const modalContent = `<p>Scene ${this.currentScene.number} has no messages.</p>
-              <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`;
-      const confirmed = await this.uiService.confirmModal(modalContent);
+      const confirmed = await Dialog.confirm({
+        title: "Skip Empty Scene?",
+        content: `<p>Scene ${this.currentScene.number} has no messages.</p>
+                <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`,
+        yes: () => true,
+        no: () => false,
+        defaultYes: true,
+      });
 
       if (confirmed) {
-        this.startNewScene(undefined, true); // This will increment the scene number
+        this.startNewScene();
         ui.notifications?.info(
           `Skipped empty scene. Now in Scene ${this.currentScene?.number}.`,
         );
@@ -382,7 +397,7 @@ export default class RhapsodyApp extends Base {
     const loadingMessage: Message = {
       id: foundry.utils.randomID(),
       sender: "ai",
-      content: "Generating scene summary",
+      content: MarkdownService.convertToHTML("Generating scene summary..."),
       timestamp: new Date(),
       isLoading: true,
     };
@@ -390,7 +405,7 @@ export default class RhapsodyApp extends Base {
     await this.render({ parts: ["messages"] });
 
     try {
-      // Generate scene summary
+      // Generate scene summary (returns HTML)
       const summary = await this.sceneService.generateSceneSummary(
         this.currentScene.messages,
       );
@@ -401,39 +416,35 @@ export default class RhapsodyApp extends Base {
       );
       await this.render({ parts: ["messages"] });
 
-      // Show dialog for editing summary
-      const editedSummary =
-        await this.sceneService.showSummaryEditDialog(summary);
+      // Save the summary directly
+      this.currentScene.summary = summary;
 
-      if (editedSummary !== null) {
-        // Save the summary
-        this.currentScene.summary = editedSummary;
+      // Create journal entry and get the created journal
+      const journal = await this.journalService.createJournalEntry(
+        this.currentScene,
+        session,
+      );
 
-        // Create journal entry
-        await this.journalService.createJournalEntry(
-          this.currentScene,
-          session,
-        );
+      // Archive the scene
+      this.sceneHistory.push(this.currentScene);
+      if (this.sceneHistory.length > 5) {
+        this.sceneHistory.shift();
+      }
 
-        // Archive the scene
-        this.sceneHistory.push(this.currentScene);
-        if (this.sceneHistory.length > 5) {
-          this.sceneHistory.shift(); // Keep only last 5 scenes for context
-        }
+      // Store the completed scene number for the notification
+      const completedSceneNumber = this.currentScene.number || 0;
 
-        // Store the completed scene number for the notification
-        const completedSceneNumber = this.currentScene.number || 0;
+      // Start new scene
+      this.startNewScene();
 
-        // Start new scene (this increments the scene counter)
-        this.startNewScene();
+      // Show notification
+      ui.notifications?.info(
+        `Scene ${completedSceneNumber} saved! Now starting Scene ${this.currentScene?.number || completedSceneNumber + 1}.`,
+      );
 
-        // Clear notification with scene numbers
-        ui.notifications?.info(
-          `Scene ${completedSceneNumber} saved! Now starting Scene ${this.currentScene?.number || completedSceneNumber + 1}.`,
-        );
-      } else {
-        // User cancelled the summary dialog
-        ui.notifications?.warn("Scene ending cancelled.");
+      // Open the created journal entry for editing
+      if (journal) {
+        journal.sheet?.render(true);
       }
     } catch (error) {
       console.error("Error ending scene:", error);

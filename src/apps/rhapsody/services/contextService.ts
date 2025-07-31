@@ -1,6 +1,7 @@
 // services/contextService.ts
 import type { Message, Scene } from "../types";
 import { ApiService } from "./apiService";
+import { MarkdownService } from "./markdownService";
 
 export class ContextService {
   private contextSummary: string = "";
@@ -38,16 +39,17 @@ export class ContextService {
         Use system-specific terminology and follow the game's conventions.
         
         ${this.contextSummary ? `\nContext from earlier in scene: ${this.contextSummary}` : ""}
-        ${sceneHistory.length > 0 ? `\nPrevious scene summary: ${sceneHistory[sceneHistory.length - 1].summary}` : ""}`,
+        ${sceneHistory.length > 0 ? `\nPrevious scene summary: ${MarkdownService.stripHTML(sceneHistory[sceneHistory.length - 1].summary || "")}` : ""}`,
     });
 
     const pinnedMessages = messages.filter((m) => m.isPinned && !m.isLoading);
     const recentMessages = this.getRecentMessages(messages);
 
+    // Strip HTML when sending to AI
     for (const msg of pinnedMessages) {
       contextMessages.push({
         role: msg.sender === "user" ? "user" : "assistant",
-        content: msg.content,
+        content: MarkdownService.stripHTML(msg.content),
       });
     }
 
@@ -55,7 +57,7 @@ export class ContextService {
       if (!msg.isPinned && !msg.isLoading) {
         contextMessages.push({
           role: msg.sender === "user" ? "user" : "assistant",
-          content: msg.content,
+          content: MarkdownService.stripHTML(msg.content),
         });
       }
     }

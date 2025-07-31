@@ -5,7 +5,7 @@ export class JournalService {
   async createJournalEntry(
     scene: Scene,
     session: Session | null,
-  ): Promise<void> {
+  ): Promise<JournalEntry | null | undefined> {
     if (!game.system || !game.folders || !game.journal || !canvas?.scene) {
       console.warn(
         "Rhapsody: JournalService requires game.system, game.folders, and game.journal to be available",
@@ -24,7 +24,7 @@ export class JournalService {
     // Create journal metadata
     const metadata = this.createMetadata(scene, session);
 
-    await JournalEntry.create({
+    const journal = await JournalEntry.create({
       name: scene.name,
       folder: folderPath.id,
       pages: [
@@ -33,18 +33,20 @@ export class JournalService {
           type: "text",
           text: {
             content: `
-            ${metadata}
-            <h2>${scene.name}</h2>
-            <p><em>Started: ${scene.startTime.toLocaleString()}</em></p>
-            <p><strong>System:</strong> ${systemInfo} | <strong>Location:</strong> ${sceneName}</p>
-            ${session ? `<p><strong>Session:</strong> ${session.name} | <strong>Scene:</strong> ${scene.number}</p>` : ""}
-            <hr>
-            ${scene.summary ? `<div>${scene.summary}</div>` : ""}
-          `,
+              ${metadata}
+              <h2>${scene.name}</h2>
+              <p><em>Started: ${scene.startTime.toLocaleString()}</em></p>
+              <p><strong>System:</strong> ${systemInfo} | <strong>Location:</strong> ${sceneName}</p>
+              ${session ? `<p><strong>Session:</strong> ${session.name} | <strong>Scene:</strong> ${scene.number}</p>` : ""}
+              <hr>
+              ${scene.summary ? `<div>${scene.summary}</div>` : ""}
+            `,
           },
         },
       ],
     });
+
+    return journal;
   }
 
   private createMetadata(scene: Scene, session: Session | null): string {

@@ -1,4 +1,5 @@
 import type { Message, DeepSeekResponse } from "../types";
+import { MarkdownService } from "./markdownService";
 
 export class ApiService {
   public readonly apiKey: string;
@@ -96,7 +97,10 @@ export class ApiService {
   async generateSummary(messages: Message[]): Promise<string> {
     const conversation = messages
       .filter((m) => !m.isLoading && m.id !== "summary-marker")
-      .map((m) => `${m.sender === "user" ? "Player" : "GM"}: ${m.content}`)
+      .map(
+        (m) =>
+          `${m.sender === "user" ? "Player" : "GM"}: ${MarkdownService.stripHTML(m.content)}`,
+      ) // Strip HTML for AI
       .join("\n");
 
     const response = await fetch("https://api.deepseek.com/chat/completions", {
@@ -128,7 +132,10 @@ export class ApiService {
   ): Promise<string> {
     const allMessages = messages
       .filter((m) => !m.isLoading && m.id !== "summary-marker")
-      .map((m) => `${m.sender === "user" ? "Player" : "GM"}: ${m.content}`)
+      .map(
+        (m) =>
+          `${m.sender === "user" ? "Player" : "GM"}: ${MarkdownService.stripHTML(m.content)}`,
+      ) // Strip HTML
       .join("\n");
 
     const prompt = `Create a narrative summary of this ${systemInfo} RPG scene. Include:
@@ -141,6 +148,7 @@ export class ApiService {
     
     Format it as an engaging narrative summary that would be fun to read later.
     Keep it appropriate for ${systemInfo}'s tone and setting.
+    Use markdown formatting for structure (headers, bold, lists, etc).
     
     Conversation:
     ${allMessages}`;

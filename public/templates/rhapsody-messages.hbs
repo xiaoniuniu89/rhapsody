@@ -1,3 +1,5 @@
+<!-- src/public/templates/rhapsody-messages.hbs -->
+<!-- Update to render HTML content -->
 <div>
 {{#each messages}}
   <div class="message {{sender}}-message" data-message-id="{{id}}">
@@ -13,7 +15,7 @@
       {{#if (and isLoading (eq content ""))}}
         <div class="loading-dots">Thinking<span>.</span><span>.</span><span>.</span></div>
       {{else}}
-        {{content}}{{#if (and isLoading content)}}<span class="typing-cursor">▊</span>{{/if}}
+        {{{content}}} <!-- Triple braces to render HTML -->
       {{/if}}
     </div>
   </div>

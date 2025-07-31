@@ -21,7 +21,8 @@ export interface Scene {
 export interface Message {
   id: string;
   sender: "user" | "ai";
-  content: string;
+  content: string; // This will now store HTML
+  rawContent?: string; // Optional: store original markdown for debugging
   timestamp: Date;
   isLoading?: boolean;
   isPinned?: boolean;

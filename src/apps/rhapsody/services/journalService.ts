@@ -51,11 +51,14 @@ export class JournalService {
 
   private createMetadata(scene: Scene, session: Session | null): string {
     // Hidden metadata for future semantic search
+    const startTime =
+      scene?.startTime instanceof Date ? scene.startTime : new Date();
+
     const metadata = {
       sessionId: session?.id || null,
       sessionNumber: session?.number || null,
-      sceneNumber: scene.number || null,
-      timestamp: scene.startTime.toISOString(),
+      sceneNumber: scene?.number || null,
+      timestamp: startTime.toISOString(),
     };
 
     return `<!-- RHAPSODY_METADATA: ${JSON.stringify(metadata)} -->`;

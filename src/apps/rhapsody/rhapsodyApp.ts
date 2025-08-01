@@ -1,5 +1,5 @@
 import { id as moduleId } from "../../../module.json";
-import type { Message, Scene } from "./types";
+import type { Scene } from "./types";
 import { ApiService } from "./services/apiService";
 import { ContextService } from "./services/contextService";
 import { JournalService } from "./services/journalService";
@@ -7,7 +7,8 @@ import { SceneService } from "./services/sceneService";
 import { StateService } from "./services/stateService";
 import { SessionService } from "./services/sessionService";
 import { UIService } from "./services/UIService";
-import { MarkdownService } from "./services/markdownService";
+import { MessageService } from "./services/messageService";
+import { ChatService } from "./services/chatService";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -58,12 +59,15 @@ export default class RhapsodyApp extends Base {
   private stateService: StateService;
   private sessionService: SessionService;
   private uiService: UIService;
+  private messageService: MessageService;
+  private chatService: ChatService;
 
   constructor(options?: any) {
     super(options);
     // @ts-ignore
     const apiKey = game?.settings?.get(moduleId, "deepseekApiKey") as string;
 
+    // Initialize services
     this.apiService = new ApiService(apiKey);
     this.contextService = new ContextService(this.apiService);
     this.journalService = new JournalService();
@@ -71,6 +75,12 @@ export default class RhapsodyApp extends Base {
     this.sessionService = new SessionService();
     this.stateService = new StateService();
     this.uiService = new UIService();
+    this.messageService = new MessageService();
+    this.chatService = new ChatService(
+      this.apiService,
+      this.contextService,
+      this.messageService,
+    );
 
     // Load state including sessions
     const state = this.stateService.loadState();
@@ -148,166 +158,139 @@ export default class RhapsodyApp extends Base {
   ) {
     console.log("submit event", event);
 
-    // Check if session is active
-    if (!this.sessionService.hasActiveSession()) {
-      ui.notifications?.warn("Please start a session first!");
+    const input = formData.get("userMessage")?.toString().trim() || "";
+
+    // Validate requirements
+    const validation = this.chatService.validateChatRequirements(
+      this.sessionService.hasActiveSession(),
+      this.apiService.apiKey,
+      this.currentScene,
+      input,
+    );
+
+    if (!validation.valid) {
+      ui.notifications?.warn(validation.error!);
       return;
     }
 
-    const input = formData.get("userMessage")?.toString().trim();
+    // Create and add user message
+    const userMessage = this.messageService.createUserMessage(input);
+    this.messageService.addMessageToScene(this.currentScene!, userMessage);
 
-    if (!input) {
-      ui.notifications?.warn("Please enter a message.");
-      return;
-    }
-
-    if (!this.apiService.apiKey) {
-      ui.notifications?.error(
-        "Please set your DeepSeek API key in module settings.",
-      );
-      return;
-    }
-
-    if (!this.currentScene) {
-      ui.notifications?.error("No active scene!");
-      return;
-    }
-
-    const userMessage: Message = {
-      id: foundry.utils.randomID(),
-      sender: "user",
-      content: MarkdownService.escapeHtml(input), // Store user input as escaped HTML
-      timestamp: new Date(),
-      tokenCount: estimateTokens(input),
-    };
-
-    this.currentScene.messages.push(userMessage);
-
-    if (
-      this.contextService.shouldCompressContext(
-        this.currentScene.messages,
-        this.sceneHistory,
-      )
-    ) {
-      const { updatedMessages, summary } =
-        await this.contextService.compressOlderMessages(
-          this.currentScene.messages,
-        );
-      this.currentScene.messages = updatedMessages;
-      this.contextService.setContextSummary(
-        this.contextService.getContextSummary()
-          ? `${this.contextService.getContextSummary()}\n\n${summary}`
-          : summary,
-      );
-    }
-
-    // Create AI message that we'll update as streaming progresses
-    const aiMessage: Message = {
-      id: foundry.utils.randomID(),
-      sender: "ai",
-      content: "",
-      rawContent: "", // Track the raw markdown as it streams
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    this.currentScene.messages.push(aiMessage);
-
-    await this.render({ parts: ["messages", "input"] });
+    // Reset form and render to show user message immediately
     form.reset();
+    await this.render({ parts: ["messages", "input"] });
+
+    // Scroll to show new user message
+    const container = this.element?.querySelector(".rhapsody-messages");
+    this.messageService.scrollToBottom(container);
 
     try {
-      const messages = await this.contextService.buildContextMessages(
-        this.currentScene.messages.filter((m) => m.id !== aiMessage.id),
+      // Process context compression if needed
+      if (
+        this.contextService.shouldCompressContext(
+          this.currentScene!.messages,
+          this.sceneHistory,
+        )
+      ) {
+        const { updatedMessages, summary } =
+          await this.contextService.compressOlderMessages(
+            this.currentScene!.messages,
+          );
+        this.currentScene!.messages = updatedMessages;
+
+        const existingSummary = this.contextService.getContextSummary();
+        this.contextService.setContextSummary(
+          existingSummary ? `${existingSummary}\n\n${summary}` : summary,
+        );
+      }
+
+      // Create AI message for streaming
+      const aiMessage = this.messageService.createAIMessage();
+      this.messageService.addMessageToScene(this.currentScene!, aiMessage);
+
+      // Render to show AI message placeholder
+      await this.render({ parts: ["messages"] });
+
+      // Build context for AI
+      const contextMessages = await this.contextService.buildContextMessages(
+        this.currentScene!.messages.filter((m) => m.id !== aiMessage.id),
         this.sceneHistory,
         game?.system?.title || game?.system?.id || "Unknown System",
         game?.world?.title || "Unknown World",
         canvas?.scene?.name || "Unknown Location",
       );
 
-      // Use streaming API
+      // Stream response with real-time updates
       let fullMarkdown = "";
-      for await (const chunk of this.apiService.streamDeepSeekAPI(messages)) {
+
+      for await (const chunk of this.apiService.streamDeepSeekAPI(
+        contextMessages,
+      )) {
         fullMarkdown += chunk;
 
-        // Convert accumulated markdown to HTML for display
-        const html = MarkdownService.convertStreamingChunk(fullMarkdown);
+        // Update message with streaming content
+        this.messageService.updateStreamingMessage(
+          aiMessage,
+          fullMarkdown,
+          false,
+        );
 
-        // Update the message with converted HTML
-        aiMessage.content = html;
-        aiMessage.rawContent = fullMarkdown;
-        aiMessage.isLoading = false;
+        // Update DOM directly for smooth streaming
+        this.messageService.updateStreamingDOM(
+          this.element,
+          aiMessage.id,
+          aiMessage.content,
+        );
 
-        // Update just the specific message with HTML
-        await this.updateStreamingMessage(aiMessage.id, html);
+        // Auto-scroll during streaming
+        const container = this.element?.querySelector(".rhapsody-messages");
+        this.messageService.autoScrollMessages(container);
       }
 
-      // Final conversion with complete markdown
-      aiMessage.content = MarkdownService.convertToHTML(fullMarkdown);
-      aiMessage.rawContent = fullMarkdown;
-      aiMessage.tokenCount = estimateTokens(fullMarkdown);
+      // Final update with complete content
+      this.messageService.updateStreamingMessage(aiMessage, fullMarkdown, true);
+
+      // Save state after successful message
       this.saveAllState();
 
-      // Final render to ensure everything is in sync
+      // Final UI update to ensure everything is in sync
       await this.render({ parts: ["messages", "sceneControls"] });
 
-      // Scroll to bottom
-      const messagesContainer =
-        this.element?.querySelector(".rhapsody-messages");
-      if (messagesContainer) {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
+      // Final scroll to bottom
+      const finalContainer = this.element?.querySelector(".rhapsody-messages");
+      this.messageService.scrollToBottom(finalContainer);
     } catch (error) {
-      console.error("DeepSeek API error:", error);
+      console.error("Chat error:", error);
 
-      // Remove the AI message on error
-      this.currentScene.messages = this.currentScene.messages.filter(
-        (msg) => msg.id !== aiMessage.id,
+      // Find and remove the AI message that failed
+      const aiMessages = this.currentScene!.messages.filter(
+        (m) => m.sender === "ai" && m.isLoading,
       );
+      aiMessages.forEach((msg) => {
+        this.messageService.removeMessageFromScene(this.currentScene!, msg.id);
+      });
 
-      const errorMessage: Message = {
-        id: foundry.utils.randomID(),
-        sender: "ai",
-        content: MarkdownService.escapeHtml(
-          "Sorry, I couldn't get a response. Please check your API key and try again.",
-        ),
-        timestamp: new Date(),
-      };
+      // Add error message
+      const errorMessage = this.messageService.createErrorMessage(
+        "Sorry, I couldn't get a response. Please check your API key and try again.",
+      );
+      this.messageService.addMessageToScene(this.currentScene!, errorMessage);
 
-      this.currentScene.messages.push(errorMessage);
       await this.render({ parts: ["messages"] });
-
       ui.notifications?.error(
         "Failed to get AI response. Check your API key and connection.",
       );
     }
   }
 
-  private async updateStreamingMessage(messageId: string, htmlContent: string) {
-    const messageElement = this.element?.querySelector(
-      `[data-message-id="${messageId}"] .message-content`,
+  startNewScene(name?: string, incrementNumber: boolean = true) {
+    console.log(
+      "Starting new scene:",
+      name,
+      "incrementNumber:",
+      incrementNumber,
     );
-    if (messageElement) {
-      // Use innerHTML to render HTML content
-      messageElement.innerHTML = htmlContent;
-
-      // Auto-scroll to keep the new content visible
-      const messagesContainer =
-        this.element?.querySelector(".rhapsody-messages");
-      if (messagesContainer) {
-        // Only scroll if user is near the bottom (within 100px)
-        const isNearBottom =
-          messagesContainer.scrollHeight -
-            messagesContainer.scrollTop -
-            messagesContainer.clientHeight <
-          100;
-        if (isNearBottom) {
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-      }
-    }
-  }
-
-  startNewScene(name?: string, incrementNumber: boolean = false) {
     const session = this.sessionService.getCurrentSession();
     if (!session) {
       ui.notifications?.warn("Please start a session first!");
@@ -351,13 +334,11 @@ export default class RhapsodyApp extends Base {
   }
 
   async endScene() {
-    // Check if we have a scene at all
     if (!this.currentScene) {
       ui.notifications?.warn("No scene to end.");
       return;
     }
 
-    // Check for active session
     const session = this.sessionService.getCurrentSession();
     if (!session) {
       ui.notifications?.warn("No active session!");
@@ -369,14 +350,14 @@ export default class RhapsodyApp extends Base {
       const confirmed = await Dialog.confirm({
         title: "Skip Empty Scene?",
         content: `<p>Scene ${this.currentScene.number} has no messages.</p>
-                <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`,
+                  <p>Skip to Scene ${(this.currentScene.number || 0) + 1}?</p>`,
         yes: () => true,
         no: () => false,
         defaultYes: true,
       });
 
       if (confirmed) {
-        this.startNewScene();
+        this.startNewScene("", true);
         ui.notifications?.info(
           `Skipped empty scene. Now in Scene ${this.currentScene?.number}.`,
         );
@@ -384,88 +365,63 @@ export default class RhapsodyApp extends Base {
       return;
     }
 
-    // Disable buttons during processing
-    this.element
-      ?.querySelectorAll(
-        '[data-action="end-scene"], [data-action="restart-scene"]',
-      )
-      .forEach((btn) => {
-        (btn as HTMLButtonElement).disabled = true;
-      });
+    // Disable buttons
+    this.setSceneButtonsEnabled(false);
 
-    // Add loading indicator
-    const loadingMessage: Message = {
-      id: foundry.utils.randomID(),
-      sender: "ai",
-      content: MarkdownService.convertToHTML("Generating scene summary..."),
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    this.currentScene.messages.push(loadingMessage);
+    // Add loading message
+    const loadingMessage = this.messageService.createLoadingMessage(
+      "Generating scene summary...",
+    );
+    this.messageService.addMessageToScene(this.currentScene, loadingMessage);
     await this.render({ parts: ["messages"] });
 
     try {
-      // Generate scene summary (returns HTML)
+      // Generate summary
       const summary = await this.sceneService.generateSceneSummary(
         this.currentScene.messages,
       );
 
       // Remove loading message
-      this.currentScene.messages = this.currentScene.messages.filter(
-        (msg) => msg.id !== loadingMessage.id,
+      this.messageService.removeMessageFromScene(
+        this.currentScene,
+        loadingMessage.id,
       );
       await this.render({ parts: ["messages"] });
 
-      // Save the summary directly
+      // Save summary and create journal
       this.currentScene.summary = summary;
-
-      // Create journal entry and get the created journal
       const journal = await this.journalService.createJournalEntry(
         this.currentScene,
         session,
       );
 
-      // Archive the scene
-      this.sceneHistory.push(this.currentScene);
-      if (this.sceneHistory.length > 5) {
-        this.sceneHistory.shift();
-      }
-
-      // Store the completed scene number for the notification
+      // Archive scene
       const completedSceneNumber = this.currentScene.number || 0;
+      this.archiveCurrentScene();
 
       // Start new scene
       this.startNewScene();
 
-      // Show notification
+      // Notify and open journal
       ui.notifications?.info(
         `Scene ${completedSceneNumber} saved! Now starting Scene ${this.currentScene?.number || completedSceneNumber + 1}.`,
       );
 
-      // Open the created journal entry for editing
       if (journal) {
         journal.sheet?.render(true);
       }
     } catch (error) {
       console.error("Error ending scene:", error);
+      this.messageService.removeMessageFromScene(
+        this.currentScene,
+        loadingMessage.id,
+      );
+      await this.render({ parts: ["messages"] });
       ui.notifications?.error(
         "Failed to generate scene summary. Please try again.",
       );
-
-      // Remove loading message on error
-      this.currentScene.messages = this.currentScene.messages.filter(
-        (msg) => msg.id !== loadingMessage.id,
-      );
-      await this.render({ parts: ["messages"] });
     } finally {
-      // Re-enable buttons
-      this.element
-        ?.querySelectorAll(
-          '[data-action="end-scene"], [data-action="restart-scene"]',
-        )
-        .forEach((btn) => {
-          (btn as HTMLButtonElement).disabled = false;
-        });
+      this.setSceneButtonsEnabled(true);
     }
   }
 
@@ -476,7 +432,7 @@ export default class RhapsodyApp extends Base {
     );
     if (sessionName !== null) {
       this.sessionService.startNewSession(sessionName || undefined);
-      this.startNewScene(); // Automatically start first scene
+      this.startNewScene(undefined, false); // Automatically start first scene
       this.saveAllState();
       this.render();
       ui.notifications?.info("Session started!");
@@ -515,11 +471,10 @@ export default class RhapsodyApp extends Base {
       case "end-scene":
         await this.endScene();
         break;
-      case "restart-scene": // New action
+      case "restart-scene":
         await this.restartScene();
         break;
       case "toggle-pin":
-        // TODO: fix pinning message
         // @ts-ignore
         const messageId = target.closest(".message")?.dataset.messageId;
         if (messageId) {
@@ -591,11 +546,33 @@ export default class RhapsodyApp extends Base {
   private togglePinMessage(messageId: string) {
     if (!this.currentScene) return;
 
-    const message = this.currentScene.messages.find((m) => m.id === messageId);
-    if (message) {
-      message.isPinned = !message.isPinned;
+    const success = this.messageService.togglePinMessage(
+      this.currentScene,
+      messageId,
+    );
+    if (success) {
       this.saveAllState();
       this.render({ parts: ["messages"] });
+    }
+  }
+
+  // Helper methods
+  private setSceneButtonsEnabled(enabled: boolean) {
+    this.element
+      ?.querySelectorAll(
+        '[data-action="end-scene"], [data-action="restart-scene"]',
+      )
+      .forEach((btn) => {
+        (btn as HTMLButtonElement).disabled = !enabled;
+      });
+  }
+
+  private archiveCurrentScene() {
+    if (!this.currentScene) return;
+
+    this.sceneHistory.push(this.currentScene);
+    if (this.sceneHistory.length > 5) {
+      this.sceneHistory.shift();
     }
   }
 
@@ -611,8 +588,4 @@ export default class RhapsodyApp extends Base {
       sessionState.highestSessionNumber,
     );
   }
-}
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }

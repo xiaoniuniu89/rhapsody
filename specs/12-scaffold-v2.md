@@ -57,10 +57,10 @@ If `public/templates/` contains v1 `.hbs` files, delete them (we'll write a fres
 ### 3. Create v2 directory layout
 
 Create empty directories with a `.gitkeep` in each (so git tracks them):
-- [ ] `src/engine/.gitkeep`
-- [ ] `src/memory/.gitkeep`
-- [ ] `src/llm/.gitkeep`
-- [ ] `src/ui/` (will get `RhapsodyApp.ts` below — no `.gitkeep` needed)
+- [x] `src/engine/.gitkeep`
+- [x] `src/memory/.gitkeep`
+- [x] `src/llm/.gitkeep`
+- [x] `src/ui/` (will get `RhapsodyApp.ts` below — no `.gitkeep` needed)
 
 ### 4. Write `src/main.ts`
 

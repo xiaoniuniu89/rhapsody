@@ -66,108 +66,28 @@ Create empty directories with a `.gitkeep` in each (so git tracks them):
 
 Create `src/main.ts` with exactly this content (port of v1's working sidebar injection, stripped of v1 app wiring):
 
-```ts
-import { id as moduleId } from "../module.json";
-import RhapsodyApp from "./ui/RhapsodyApp";
-import "./styles/rhapsody.css";
+- [x] `src/main.ts` created.
 
-let rhapsodyApp: RhapsodyApp;
-
-Hooks.once("init", () => {
-  if (!game.settings) return;
-
-  // @ts-ignore — foundry-vtt-types coverage is partial
-  game.settings.register(moduleId, "rhapsodyState", {
-    scope: "world",
-    config: false,
-    type: Object,
-    default: {},
-  });
-});
-
-Hooks.once("ready", () => {
-  console.log(`🎵 Rhapsody ${moduleId} ready`);
-  rhapsodyApp = new RhapsodyApp();
-});
-
-// @ts-ignore
-Hooks.on("renderSidebar", (_app, html) => {
-  const tabsMenu = html.querySelector("nav.tabs menu.flexcol");
-  if (!tabsMenu) return;
-
-  const li = document.createElement("li");
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "ui-control plain icon fa-solid fa-theater-masks";
-  button.setAttribute("data-action", "tab");
-  button.setAttribute("data-tab", "rhapsody");
-  button.setAttribute("role", "tab");
-  button.setAttribute("aria-pressed", "false");
-  button.setAttribute("data-group", "primary");
-  button.setAttribute("aria-label", "Rhapsody");
-  button.setAttribute("aria-controls", "rhapsody");
-  button.setAttribute("data-tooltip", "");
-
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    rhapsodyApp.render({ force: true });
-  });
-
-  const collapseButton = tabsMenu.querySelector("li:last-child");
-  li.appendChild(button);
-  tabsMenu.insertBefore(li, collapseButton);
-});
-```
-
-Notes:
-- The DeepSeek API key setting is intentionally dropped — provider config lands in #11.
-- The notification pip div from v1 is dropped for now (re-add when there's actually something to notify about).
-- Sidebar injection uses native DOM (no jQuery) — V14-friendly already.
+...
 
 ### 5. Write `src/ui/RhapsodyApp.ts`
 
-```ts
-// @ts-ignore — foundry global
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+- [x] `src/ui/RhapsodyApp.ts` created.
 
-export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV2) {
-  static DEFAULT_OPTIONS = {
-    id: "rhapsody",
-    tag: "div",
-    window: {
-      title: "Rhapsody",
-      icon: "fa-solid fa-theater-masks",
-      resizable: true,
-    },
-    position: { width: 600, height: 700 },
-  };
-
-  static PARTS = {
-    panel: {
-      template: "modules/rhapsody/public/templates/rhapsody-panel.hbs",
-    },
-  };
-}
-```
+...
 
 ### 6. Write `public/templates/rhapsody-panel.hbs`
 
-```hbs
-<section class="rhapsody-panel">
-  <p>Rhapsody v2 — empty panel.</p>
-</section>
-```
+- [x] `public/templates/rhapsody-panel.hbs` created.
+
+...
 
 ### 7. Trim `src/styles/rhapsody.css`
 
 Wipe the file's contents and replace with a single placeholder rule so it still imports cleanly:
 
-```css
-.rhapsody-panel {
-  padding: 1rem;
-}
-```
+- [x] `src/styles/rhapsody.css` trimmed.
+
 
 (v1 styles will be reintroduced in later issues as the UI grows.)
 

@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** (none — pick next)
-**Up next candidates:** #11 LLM provider, #4 wiki memory, #5 scene contracts
+**Active:** #4 — Wiki-style memory → [specs/4-wiki-memory.md](specs/4-wiki-memory.md)
+**Up next:** #6 — GM moves catalog
 
 ## Workflow (read first when starting a session)
 
@@ -17,6 +17,7 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
+- 2026-04-26: completed #11 LLM provider (slim scaffold). AnthropicClient wired to Test button. Verified by build.
 - 2026-04-26: completed #3 introspection. `IntrospectionService` exposes `SystemBrief` and `briefScene()` — verified on Simple World-Building.
 - 2026-04-26: completed #12 Scaffold v2. V14 baseline established, ApplicationV2 skeleton ready, verified by user.
 - 2026-04-26: opened 12 v2 issues (#1–#12). Locked decisions: stay in Foundry, system-agnostic by introspection (#3), wiki-style memory (#4), greenfield rebuild. Set up this handoff convention.

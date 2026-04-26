@@ -41,12 +41,10 @@ There is no test runner and no lint script configured. TypeScript is strict (`no
 
 ## Architecture (v2)
 
-Entry point is `src/main.ts`. It registers three Foundry hooks:
-- `init` — registers the `rhapsodyState` world setting.
-- `ready` — instantiates `RhapsodyApp` (a singleton).
-- `renderSidebar` — injects a theater-masks button into Foundry's left sidebar tab strip.
-
-`module.json` declares `src/main.ts` as the ES module entry.
+- Entry point: `src/main.ts` (registers hooks, world settings for `anthropicApiKey`, `anthropicModel`).
+- UI: `src/ui/RhapsodyApp.ts` (extends `ApplicationV2`, lazy-loads LLM client).
+- LLM: `src/llm/AnthropicClient.ts` (thin wrapper for Anthropic SDK, reads world settings).
+- Introspection: `src/engine/IntrospectionService.ts` (system discovery).
 
 ### App structure
 

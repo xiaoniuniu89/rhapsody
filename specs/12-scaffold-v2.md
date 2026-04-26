@@ -40,10 +40,10 @@ Work through these in order, committing each meaningful step. Tick the box on co
 ### 2. Wipe v1
 
 Delete:
-- [ ] `src/main.ts`
-- [ ] `src/apps/` (entire directory)
-- [ ] `src/globals.d.ts`
-- [ ] `src/typescript.svg`
+- [x] `src/main.ts`
+- [x] `src/apps/` (entire directory)
+- [x] `src/globals.d.ts`
+- [x] `src/typescript.svg`
 
 Keep (do not touch):
 - `src/lang/en.json`
@@ -52,6 +52,7 @@ Keep (do not touch):
 - `public/` (templates dir will be repopulated below)
 
 If `public/templates/` contains v1 `.hbs` files, delete them (we'll write a fresh one).
+- [x] `public/templates/*.hbs` wiped.
 
 ### 3. Create v2 directory layout
 

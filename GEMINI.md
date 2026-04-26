@@ -4,7 +4,7 @@ This file provides context to Gemini CLI when working in this repository. The pr
 
 ## Project
 
-Rhapsody is a Foundry VTT V14 module: an AI-powered solo Game Master tool. It's currently being **rebuilt from scratch as v2** — the existing `src/` is v1 (a chat-with-summaries prototype) and will be wiped as part of issue #12.
+Rhapsody is a Foundry VTT V14 module: an AI-powered solo Game Master tool. It's currently being **rebuilt from scratch as v2**. Issue #12 (Scaffold v2) has landed, establishing the V14-only baseline.
 
 The v2 vision is a reactive AI GM with secrets, long-term wiki-style memory, GM moves as tool calls, and rules retrieval — system-agnostic by introspecting whatever Foundry game system is loaded. Full vision: GitHub issue #1 (epic).
 
@@ -30,9 +30,9 @@ GitHub issues live at `xiaoniuniu89/rhapsody`. The v2 work is tracked under issu
 
 Locked decisions (see issue #2):
 - **Foundry V14 module** — stays in Foundry; native Actor/JournalEntry/Scene as world bible storage. (V14 chosen per #13 spike on 2026-04-26.)
-- **System-agnostic by Foundry introspection** — no per-system pack format in v1; engine reads `game.system.id` etc. and uses generic GM-craft defaults.
+- **System-agnostic by Foundry introspection** — per-system pack format deferred to #3.
 - **Wiki-style memory** — bible/journal are Foundry JournalEntries accessed via explicit read/write tools (Karpathy "second brain" model), not vector RAG. RAG is reserved for rules retrieval (#7) only.
-- **Greenfield rebuild** — v1 code will be wiped, no legacy folder.
+- **Greenfield rebuild** — no legacy folder, no archive tag.
 
 ## Build / dev commands
 
@@ -42,6 +42,15 @@ Locked decisions (see issue #2):
 - `npm run prettier` — format `src/**/*.{ts,js,html,css}`.
 
 No test or lint script is configured. TypeScript is strict.
+
+## Architecture (v2)
+
+Entry point is `src/main.ts`. It registers three Foundry hooks:
+- `init` — registers the `rhapsodyState` world setting.
+- `ready` — instantiates `RhapsodyApp` (a singleton).
+- `renderSidebar` — injects a theater-masks button into Foundry's left sidebar tab strip.
+
+`RhapsodyApp` (`src/ui/RhapsodyApp.ts`) extends Foundry's `HandlebarsApplicationMixin(ApplicationV2)`. It renders a single `panel` part using `public/templates/rhapsody-panel.hbs`.
 
 ## Conventions
 

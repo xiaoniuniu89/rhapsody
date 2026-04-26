@@ -16,6 +16,26 @@ Hooks.once("init", () => {
     type: Object,
     default: {},
   });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "anthropicApiKey", {
+    name: "Anthropic API Key",
+    hint: "Your key from https://console.anthropic.com/settings/keys",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "",
+  });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "anthropicModel", {
+    name: "Anthropic Model",
+    hint: "Model id, e.g. claude-sonnet-4-6, claude-opus-4-7",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "claude-sonnet-4-6",
+  });
 });
 
 Hooks.once("ready", () => {

@@ -1,3 +1,6 @@
 <section class="rhapsody-panel">
-  <p>Rhapsody v2 — empty panel.</p>
+  <button type="button" data-action="testConnection">Test connection</button>
+  {{#if lastResponse}}
+    <pre class="rhapsody-response">{{lastResponse}}</pre>
+  {{/if}}
 </section>

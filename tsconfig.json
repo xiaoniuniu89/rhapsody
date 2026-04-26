@@ -12,6 +12,7 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "types": ["@league-of-foundry-developers/foundry-vtt-types"],
 
     /* Linting */
     "strict": true,

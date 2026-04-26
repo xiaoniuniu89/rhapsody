@@ -1,3 +1,12 @@
 .rhapsody-panel {
   padding: 1rem;
 }
+
+.rhapsody-response {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  font-family: var(--font-primary, sans-serif);
+}

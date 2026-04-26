@@ -24,18 +24,18 @@ Work through these in order, committing each meaningful step. Tick the box on co
 
 ### 1. Manifest + types + tsconfig (V14 baseline)
 
-- [ ] Update `module.json`:
-  - `"version": "2.0.0-dev"`
-  - `"compatibility": { "minimum": "14", "verified": "14" }`
-  - Keep `"esmodules": ["src/main.ts"]` for now (build path is handled by Vite lib mode; do not touch).
-- [ ] Update `package.json`:
-  - Bump `@league-of-foundry-developers/foundry-vtt-types` to the latest V14-compatible version (check `npm view @league-of-foundry-developers/foundry-vtt-types versions` and pick the newest stable that targets Foundry 14.x).
-  - Remove `marked` from `dependencies`.
-  - Remove `interactjs` from `dependencies`.
-  - Remove `@types/marked` from `devDependencies`.
-  - Do **not** add `@anthropic-ai/sdk` yet — that lands in #11.
-  - Run `npm install` after edits.
-- [ ] Update `tsconfig.json` so `compilerOptions.moduleResolution` is `"bundler"` (if not already). Leave the rest of the strict flags alone.
+- [x] Update `module.json`:
+  - [x] `"version": "2.0.0-dev"`
+  - [x] `"compatibility": { "minimum": "14", "verified": "14" }`
+  - [x] Keep `"esmodules": ["src/main.ts"]` for now (build path is handled by Vite lib mode; do not touch).
+- [x] Update `package.json`:
+  - [x] Bump `@league-of-foundry-developers/foundry-vtt-types` to the latest V14-compatible version (check `npm view @league-of-foundry-developers/foundry-vtt-types versions` and pick the newest stable that targets Foundry 14.x).
+  - [x] Remove `marked` from `dependencies`.
+  - [x] Remove `interactjs` from `dependencies`.
+  - [x] Remove `@types/marked` from `devDependencies`.
+  - [x] Do **not** add `@anthropic-ai/sdk` yet — that lands in #11.
+  - [x] Run `npm install` after edits.
+- [x] Update `tsconfig.json` so `compilerOptions.moduleResolution` is `"bundler"` (if not already). Leave the rest of the strict flags alone.
 
 ### 2. Wipe v1
 

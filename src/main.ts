@@ -18,9 +18,9 @@ Hooks.once("init", () => {
   });
 
   // @ts-ignore
-  game.settings.register(moduleId, "anthropicApiKey", {
-    name: "Anthropic API Key",
-    hint: "Your key from https://console.anthropic.com/settings/keys",
+  game.settings.register(moduleId, "openaiApiKey", {
+    name: "OpenAI API Key",
+    hint: "Your key from https://platform.openai.com/api-keys",
     scope: "world",
     config: true,
     type: String,
@@ -28,13 +28,13 @@ Hooks.once("init", () => {
   });
 
   // @ts-ignore
-  game.settings.register(moduleId, "anthropicModel", {
-    name: "Anthropic Model",
-    hint: "Model id, e.g. claude-sonnet-4-6, claude-opus-4-7",
+  game.settings.register(moduleId, "openaiModel", {
+    name: "OpenAI Model",
+    hint: "Model id, e.g. gpt-4o-mini, gpt-4o",
     scope: "world",
     config: true,
     type: String,
-    default: "claude-sonnet-4-6",
+    default: "gpt-4o-mini",
   });
 });
 

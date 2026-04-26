@@ -45,9 +45,9 @@ No test or lint script is configured. TypeScript is strict.
 
 ## Architecture (v2)
 
-- Entry point: `src/main.ts` (registers hooks, world settings for `anthropicApiKey`, `anthropicModel`).
+- Entry point: `src/main.ts` (registers hooks, world settings for `openaiApiKey`, `openaiModel`).
 - UI: `src/ui/RhapsodyApp.ts` (extends `ApplicationV2`, lazy-loads LLM client).
-- LLM: `src/llm/AnthropicClient.ts` (thin wrapper for Anthropic SDK, reads world settings).
+- LLM: `src/llm/OpenAIClient.ts` (thin wrapper for OpenAI SDK, reads world settings).
 - Introspection: `src/engine/IntrospectionService.ts` (system discovery).
 
 ### App structure

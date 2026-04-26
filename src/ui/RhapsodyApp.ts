@@ -32,8 +32,8 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
   static async #onTestConnection(this: RhapsodyApp) {
     try {
       // Lazy import per spec
-      const { AnthropicClient } = await import("../llm/AnthropicClient");
-      const client = new AnthropicClient();
+      const { OpenAIClient } = await import("../llm/OpenAIClient");
+      const client = new OpenAIClient();
       this.lastResponse = await client.sendMessage(
         "Say hello in one short sentence.",
       );

@@ -1,7 +1,7 @@
 # #12 Scaffold v2
 
 **Status:** complete
-**Last touched:** 2026-04-26 (gemini-cli, v2 skeleton established)
+**Last touched:** 2026-04-26 (gemini-cli, v2 skeleton verified by user)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/12
 **Assignee:** gemini-cli
 

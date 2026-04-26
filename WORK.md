@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #12 — Scaffold v2 (DONE)
-**Up next:** #3 — System adaptation by Foundry introspection → [specs/3-introspection.md](specs/3-introspection.md) OR #11 LLM provider
+**Active:** #3 — System adaptation by Foundry introspection → [specs/3-introspection.md](specs/3-introspection.md)
+**Up next:** #11 — LLM provider configuration
 
 ## Workflow (read first when starting a session)
 
@@ -17,6 +17,6 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
-- 2026-04-26: completed #12 Scaffold v2. V14 baseline established, ApplicationV2 skeleton ready.
+- 2026-04-26: completed #12 Scaffold v2. V14 baseline established, ApplicationV2 skeleton ready, verified by user.
 - 2026-04-26: opened 12 v2 issues (#1–#12). Locked decisions: stay in Foundry, system-agnostic by introspection (#3), wiki-style memory (#4), greenfield rebuild. Set up this handoff convention.
-- 2026-04-26: opened #13 (Foundry V14 spike) — blocks #12 until we decide V13/V14/both target. Decided V14 only.
+- 2026-04-26: opened #13 (Foundry V14 spike) — Decided V14 only. Closed.

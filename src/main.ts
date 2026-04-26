@@ -1,8 +1,10 @@
 import { id as moduleId } from "../module.json";
 import RhapsodyApp from "./ui/RhapsodyApp";
+import { IntrospectionService } from "./engine/IntrospectionService";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
+export const introspection = new IntrospectionService();
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -18,6 +20,8 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   console.log(`🎵 Rhapsody ${moduleId} ready`);
+  const brief = introspection.init();
+  console.log("🎵 Rhapsody system brief", brief);
   rhapsodyApp = new RhapsodyApp();
 });
 

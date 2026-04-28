@@ -69,6 +69,108 @@ export class MemoryService {
     };
   }
 
+  async writePage(
+    scope: MemoryScope,
+    name: string,
+    content: { public: string; private?: string },
+  ): Promise<PageSummary> {
+    const folder = this.folderFor(scope);
+    if (!folder) throw new Error(`Folder for scope ${scope} not initialized`);
+
+    if (scope === "journal" && content.private) {
+      throw new Error("Journal scope cannot have private content");
+    }
+
+    // @ts-ignore — foundry global
+    let entry: any = [...game.journal.values()].find(
+      (e: any) => e.folder?.id === folder.id && e.name === name,
+    );
+
+    if (!entry) {
+      // @ts-ignore — foundry global
+      entry = await JournalEntry.create({
+        name,
+        folder: folder.id,
+      });
+    }
+
+    const pagesToUpsert: any[] = [
+      {
+        name: "Public",
+        type: "text",
+        "text.content": content.public,
+        "text.format": 1, // HTML
+      },
+    ];
+
+    if (content.private) {
+      pagesToUpsert.push({
+        name: "Private",
+        type: "text",
+        "text.content": content.private,
+        "text.format": 1, // HTML
+      });
+    }
+
+    for (const pageData of pagesToUpsert) {
+      const existing = this.findSubPage(entry, pageData.name);
+      if (existing) {
+        await existing.update(pageData);
+      } else {
+        await entry.createEmbeddedDocuments("JournalEntryPage", [pageData]);
+      }
+    }
+
+    return {
+      id: entry.id,
+      name: entry.name,
+      hasPrivate: content.private != null || this.findSubPage(entry, "Private") != null,
+    };
+  }
+
+  async appendPage(
+    scope: MemoryScope,
+    name: string,
+    section: "Public" | "Private",
+    html: string,
+  ): Promise<void> {
+    const folder = this.folderFor(scope);
+    if (!folder) throw new Error(`Folder for scope ${scope} not initialized`);
+
+    if (scope === "journal" && section === "Private") {
+      throw new Error("Journal scope cannot have private content");
+    }
+
+    // @ts-ignore — foundry global
+    let entry: any = [...game.journal.values()].find(
+      (e: any) => e.folder?.id === folder.id && e.name === name,
+    );
+
+    if (!entry) {
+      // @ts-ignore — foundry global
+      entry = await JournalEntry.create({
+        name,
+        folder: folder.id,
+      });
+    }
+
+    const existing = this.findSubPage(entry, section);
+    if (existing) {
+      const currentContent = existing.text?.content ?? "";
+      const newContent = currentContent ? `${currentContent}\n${html}` : html;
+      await existing.update({ "text.content": newContent });
+    } else {
+      await entry.createEmbeddedDocuments("JournalEntryPage", [
+        {
+          name: section,
+          type: "text",
+          "text.content": html,
+          "text.format": 1, // HTML
+        },
+      ]);
+    }
+  }
+
   private folderFor(scope: MemoryScope): any {
     return scope === "bible" ? this.bibleFolder : this.journalFolder;
   }

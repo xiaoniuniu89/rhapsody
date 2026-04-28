@@ -17,7 +17,8 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
-- 2026-04-28: started #4 wiki memory — `MemoryService` with folder bootstrap + `listPages`/`readPage`, mode-aware private redaction, panel Read form. Spec landed. Write/append path next.
+- 2026-04-28: #4 wiki memory write+append landed (gemini-cli). `writePage` upserts Public/Private pages; `appendPage` concatenates HTML. Panel has Write form + Journal-append shortcut. Service refuses Private content on journal scope. Awaiting manual V14 round-trip verification.
+- 2026-04-28: started #4 wiki memory — `MemoryService` with folder bootstrap + `listPages`/`readPage`, mode-aware private redaction, panel Read form. Spec landed.
 - 2026-04-26: completed #11 LLM provider (slim scaffold). AnthropicClient wired to Test button. Verified by build.
 - 2026-04-26: completed #3 introspection. `IntrospectionService` exposes `SystemBrief` and `briefScene()` — verified on Simple World-Building.
 - 2026-04-26: completed #12 Scaffold v2. V14 baseline established, ApplicationV2 skeleton ready, verified by user.

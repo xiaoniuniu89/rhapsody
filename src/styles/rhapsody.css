@@ -17,23 +17,41 @@
   margin-bottom: 0.5rem;
 }
 
-.rhapsody-memory-form {
+.rhapsody-memory-form,
+.rhapsody-memory-write-form,
+.rhapsody-memory-append-form {
   margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.rhapsody-memory-form label {
+.rhapsody-memory-form label,
+.rhapsody-memory-write-form label,
+.rhapsody-memory-append-form label {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.85rem;
 }
 
+.rhapsody-memory-write-form textarea,
+.rhapsody-memory-append-form textarea {
+  font-family: var(--font-primary, sans-serif);
+}
+
 .rhapsody-error {
   color: #c0392b;
   margin-top: 0.5rem;
+  font-weight: bold;
+}
+
+.rhapsody-success {
+  color: #27ae60;
+  margin-top: 0.5rem;
+  font-weight: bold;
 }
 
 .rhapsody-page {

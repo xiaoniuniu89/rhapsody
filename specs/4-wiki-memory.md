@@ -1,7 +1,7 @@
 # #4 Wiki-style memory (bible + journal)
 
-**Status:** in progress
-**Last touched:** 2026-04-28 (claude-code, spec + read tool)
+**Status:** in progress (awaiting manual V14 verification)
+**Last touched:** 2026-04-28 (gemini-cli, write + append path)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/4
 **Assignee:** claude-code
 
@@ -84,11 +84,11 @@ class MemoryService {
 - [x] `listPages(scope)` and `readPage(scope, name)` with private-page redaction in `play` mode.
 - [x] Wire a Read form into `RhapsodyApp` panel (scope select + name input + result render).
 - [x] Use the `memory` singleton in `main.ts` from the panel (no per-click reinit).
-- [ ] `writePage(scope, name, { public, private? })` — creates the entry if missing, replaces named sub-pages.
-- [ ] `appendPage(scope, name, section, html)` — appends HTML to a named sub-page; creates it if missing.
-- [ ] Panel "Write" form (scope + name + textareas for public/private).
-- [ ] Panel "Append to journal" shortcut for fast session logging.
-- [ ] Refuse writing `Private` to journal scope at the service boundary.
+- [x] `writePage(scope, name, { public, private? })` — creates the entry if missing, replaces named sub-pages.
+- [x] `appendPage(scope, name, section, html)` — appends HTML to a named sub-page; creates it if missing.
+- [x] Panel "Write" form (scope + name + textareas for public/private).
+- [x] Panel "Append to journal" shortcut for fast session logging.
+- [x] Refuse writing `Private` to journal scope at the service boundary.
 - [ ] Manual verify: V14 world, both modes, create+read+append round-trips.
 
 ## Notes

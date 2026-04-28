@@ -22,8 +22,49 @@
     <button type="button" data-action="readPage">Read</button>
   </form>
 
+  <form class="rhapsody-memory-write-form" onsubmit="return false;">
+    <h3>Memory write</h3>
+    <label>
+      Scope
+      <select name="write-scope">
+        <option value="bible">Bible</option>
+        <option value="journal">Journal</option>
+      </select>
+    </label>
+    <label>
+      Page name
+      <input type="text" name="write-name" placeholder="e.g. The Black Library" />
+    </label>
+    <label>
+      Public content (HTML)
+      <textarea name="write-public" rows="3"></textarea>
+    </label>
+    <label class="private-only">
+      Private content (HTML, Bible only)
+      <textarea name="write-private" rows="3"></textarea>
+    </label>
+    <button type="button" data-action="writePage">Write / Create</button>
+  </form>
+
+  <form class="rhapsody-memory-append-form" onsubmit="return false;">
+    <h3>Quick append</h3>
+    <label>
+      Target page
+      <input type="text" name="append-name" value="Session Log" />
+    </label>
+    <label>
+      HTML to append
+      <textarea name="append-html" rows="2" placeholder="What just happened?"></textarea>
+    </label>
+    <button type="button" data-action="appendJournal">Append to Journal</button>
+  </form>
+
   {{#if lastPageError}}
     <p class="rhapsody-error">{{lastPageError}}</p>
+  {{/if}}
+
+  {{#if lastPageSuccess}}
+    <p class="rhapsody-success">{{lastPageSuccess}}</p>
   {{/if}}
 
   {{#if lastPage}}

@@ -27,6 +27,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       writePage: RhapsodyApp.#onWritePage,
       appendJournal: RhapsodyApp.#onAppendJournal,
       sendTurn: RhapsodyApp.#onSendTurn,
+      saveContract: RhapsodyApp.#onSaveContract,
     },
   };
 
@@ -40,6 +41,30 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
   async _prepareContext() {
     // @ts-ignore — foundry global
     const mode = game.settings.get(moduleId, "rhapsodyMode") as RhapsodyMode;
+    // @ts-ignore
+    const activeScene = game.scenes.viewed;
+    let contractData = null;
+
+    if (activeScene) {
+      const { contract } = await import("../main");
+      contractData = contract.read(activeScene.id);
+      if (!contractData) {
+        contractData = {
+          question: "",
+          onOffer: [],
+          hidden: [],
+          complications: [],
+          exits: [],
+          progress: {
+            cluesRevealed: [],
+            complicationsTriggered: [],
+            freeform: [],
+            hiddenLeaks: []
+          }
+        };
+      }
+    }
+
     return {
       lastResponse: this.lastResponse,
       lastPage: this.lastPage,
@@ -47,7 +72,55 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       lastPageSuccess: this.lastPageSuccess,
       turnResult: this.turnResult,
       mode,
+      activeScene,
+      contract: contractData,
     };
+  }
+
+  static async #onSaveContract(this: RhapsodyApp) {
+    // @ts-ignore
+    const activeScene = game.scenes.viewed;
+    if (!activeScene) return;
+
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const question = root.querySelector<HTMLInputElement>('[name="contract-question"]')?.value ?? "";
+    const onOfferRaw = root.querySelector<HTMLTextAreaElement>('[name="contract-onOffer"]')?.value ?? "";
+    const hiddenRaw = root.querySelector<HTMLTextAreaElement>('[name="contract-hidden"]')?.value ?? "";
+    const complicationsRaw = root.querySelector<HTMLTextAreaElement>('[name="contract-complications"]')?.value ?? "";
+    const exitsRaw = root.querySelector<HTMLTextAreaElement>('[name="contract-exits"]')?.value ?? "";
+
+    const parseList = (raw: string) => raw.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+    const parseItems = (raw: string) => parseList(raw).map(text => ({
+      text,
+      // Simple slug/id generation
+      id: text.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 20)
+    }));
+
+    try {
+      const { contract } = await import("../main");
+      const existing = contract.read(activeScene.id);
+      
+      const newContract = {
+        question,
+        onOffer: parseItems(onOfferRaw),
+        hidden: parseList(hiddenRaw),
+        complications: parseItems(complicationsRaw),
+        exits: parseList(exitsRaw),
+        progress: existing?.progress ?? {
+          cluesRevealed: [],
+          complicationsTriggered: [],
+          freeform: [],
+          hiddenLeaks: []
+        }
+      };
+
+      await contract.write(activeScene.id, newContract);
+      this.lastPageSuccess = "Contract saved.";
+    } catch (err) {
+      this.lastPageError = "Error saving contract: " + (err as Error).message;
+    }
+    this.render();
   }
 
   static async #onTestConnection(this: RhapsodyApp) {

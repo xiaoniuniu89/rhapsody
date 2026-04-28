@@ -1,6 +1,7 @@
 // src/engine/MoveDispatcher.ts
 import type { MoveRegistry } from "./moves/registry";
 import type { OpenAIClient } from "../llm/OpenAIClient";
+import type { SceneContractService } from "./contract/SceneContractService";
 import type OpenAI from "openai";
 
 export interface TurnResult {
@@ -11,17 +12,41 @@ export interface TurnResult {
 export class MoveDispatcher {
   private registry: MoveRegistry;
   private client: OpenAIClient;
+  private contractService: SceneContractService;
 
-  constructor(registry: MoveRegistry, client: OpenAIClient) {
+  constructor(registry: MoveRegistry, client: OpenAIClient, contractService: SceneContractService) {
     this.registry = registry;
     this.client = client;
+    this.contractService = contractService;
   }
 
   async runTurn(playerMessage: string): Promise<TurnResult> {
+    const activeContract = this.contractService.active();
+    const systemPrompt = ["You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player."];
+
+    if (activeContract) {
+      const { contract } = activeContract;
+      systemPrompt.push("\n### ACTIVE SCENE CONTRACT");
+      systemPrompt.push(`Goal/Question: ${contract.question}`);
+      if (contract.onOffer.length > 0) {
+        systemPrompt.push("Information/Clues available to reveal:");
+        contract.onOffer.forEach(c => systemPrompt.push(`- ${c.text} (id: ${c.id})`));
+      }
+      if (contract.hidden.length > 0) {
+        systemPrompt.push("STRICTLY HIDDEN (Do NOT reveal these yet):");
+        contract.hidden.forEach(h => systemPrompt.push(`- ${h}`));
+      }
+      if (contract.exits.length > 0) {
+        systemPrompt.push("Available scene exits:");
+        contract.exits.forEach(e => systemPrompt.push(`- ${e}`));
+      }
+      systemPrompt.push("### END CONTRACT");
+    }
+
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: "You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player."
+        content: systemPrompt.join("\n")
       },
       { role: "user", content: playerMessage }
     ];
@@ -30,6 +55,21 @@ export class MoveDispatcher {
     const movesTaken: TurnResult["movesTaken"] = [];
     let narration = "";
     const MAX_STEPS = 4;
+
+    const context = {
+      contract: {
+        active: activeContract?.contract ?? null,
+        sceneId: activeContract?.sceneId ?? null,
+        recordProgress: async (patch: any) => {
+          if (activeContract) {
+            await this.contractService.recordProgress(activeContract.sceneId, patch);
+            // Update local context for subsequent tool calls in the same turn
+            const updated = this.contractService.read(activeContract.sceneId);
+            if (updated) context.contract.active = updated;
+          }
+        }
+      }
+    };
 
     for (let step = 0; step < MAX_STEPS; step++) {
       const response = await this.client.sendTurn({ messages, tools });
@@ -47,6 +87,20 @@ export class MoveDispatcher {
 
       if (message.content) {
         narration = message.content;
+        
+        // Hidden leak detection
+        if (activeContract && activeContract.contract.hidden.length > 0) {
+          const lowerNarration = narration.toLowerCase();
+          const leaks = activeContract.contract.hidden.filter(h => 
+            lowerNarration.includes(h.toLowerCase())
+          );
+          if (leaks.length > 0) {
+            console.warn("🎵 Rhapsody: Hidden leak detected in narration!", leaks);
+            await this.contractService.recordProgress(activeContract.sceneId, {
+              hiddenLeaks: [...(context.contract.active?.progress.hiddenLeaks || []), ...leaks]
+            });
+          }
+        }
       }
 
       if (message.tool_calls && message.tool_calls.length > 0) {
@@ -66,7 +120,7 @@ export class MoveDispatcher {
           if (move) {
             try {
               const args = JSON.parse(functionArgs || "{}");
-              const result = await move.handler(args);
+              const result = await move.handler(args, context);
               resultData = result.data;
               ok = result.ok;
               log = result.log;

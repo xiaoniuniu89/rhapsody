@@ -15,7 +15,7 @@ export function registerMemoryMoves(registry: MoveRegistry, memory: MemoryServic
         required: ["scope"]
       }
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const pages = memory.listPages(args.scope);
       return {
         ok: true,
@@ -38,7 +38,7 @@ export function registerMemoryMoves(registry: MoveRegistry, memory: MemoryServic
         required: ["scope", "name"]
       }
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const page = memory.readPage(args.scope, args.name);
       if (!page) {
         return { ok: false, log: `Page not found: ${args.name} in ${args.scope}` };
@@ -69,7 +69,7 @@ export function registerMemoryMoves(registry: MoveRegistry, memory: MemoryServic
         required: ["scope", "name", "public"]
       }
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       try {
         await memory.writePage(args.scope, args.name, {
           public: args.public,
@@ -99,7 +99,7 @@ export function registerMemoryMoves(registry: MoveRegistry, memory: MemoryServic
         required: ["scope", "name", "html"]
       }
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       try {
         await memory.appendPage(args.scope, args.name, "Public", args.html);
         return {

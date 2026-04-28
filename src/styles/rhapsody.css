@@ -17,6 +17,48 @@
   margin-bottom: 0.5rem;
 }
 
+.rhapsody-contract-section {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.rhapsody-contract-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rhapsody-contract-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.rhapsody-contract-progress {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.rhapsody-contract-progress summary {
+  cursor: pointer;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.progress-details {
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.leak-warning {
+  color: #f39c12;
+  font-weight: bold;
+}
+
 .rhapsody-memory-form,
 .rhapsody-memory-write-form,
 .rhapsody-memory-append-form {

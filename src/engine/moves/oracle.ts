@@ -14,7 +14,7 @@ export function registerOracleMoves(registry: MoveRegistry) {
         required: ["question"]
       }
     },
-    handler: async (args) => {
+    handler: async (args, _context) => {
       const roll = Math.random();
       let result = "no";
       if (roll > 0.6) result = "yes";

@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #5 — Scene contract → [specs/5-scene-contract.md](specs/5-scene-contract.md)
-**Up next:** #7 — Rules RAG (after embedding/persistence decisions are locked).
+**Active:** #7 — Rules RAG (after embedding/persistence decisions are locked).
+**Up next:** #8 — World-state mutation engine.
 
 ## Workflow (read first when starting a session)
 
@@ -17,6 +17,7 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
+- 2026-04-28: completed #5 scene contract (gemini-cli). Data model + storage in scene flags + editor panel + dispatcher integration with hidden-leak detection. Six narrative moves promoted from stubs to real handlers.
 - 2026-04-28: completed #6 GM moves (gemini-cli). Catalog + dispatcher + multi-step tool-call loop. Memory tools + roll_oracle real; seven narrative/state moves stubbed pending #5/#8. Verified end-to-end through the panel.
 - 2026-04-28: completed #4 wiki memory (gemini-cli). Service supports list/read/write/append with mode-aware redaction. UI panel wired for all operations. Verified in V14 with browser automation.
 - 2026-04-28: #4 wiki memory write+append landed (gemini-cli). `writePage` upserts Public/Private pages; `appendPage` concatenates HTML. Panel has Write form + Journal-append shortcut. Service refuses Private content on journal scope.

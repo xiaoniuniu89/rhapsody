@@ -1,6 +1,67 @@
 <section class="rhapsody-panel">
   <div class="rhapsody-mode">Mode: <strong>{{mode}}</strong></div>
 
+  {{#if activeScene}}
+    <section class="rhapsody-contract-section">
+      <h3>Scene Contract: {{activeScene.name}}</h3>
+      
+      <form class="rhapsody-contract-form" onsubmit="return false;">
+        <label>
+          Goal / Question
+          <input type="text" name="contract-question" value="{{contract.question}}" placeholder="e.g. Do they find the secret door?" />
+        </label>
+        
+        <label>
+          On Offer (Clues/Items) - one per line
+          <textarea name="contract-onOffer" rows="3" placeholder="Clue Text">{{#each contract.onOffer}}{{this.text}}&#10;{{/each}}</textarea>
+        </label>
+
+        <label>
+          Hidden (Off-limits) - one per line
+          <textarea name="contract-hidden" rows="2" placeholder="Secret Info">{{#each contract.hidden}}{{this}}&#10;{{/each}}</textarea>
+        </label>
+
+        <label>
+          Complications - one per line
+          <textarea name="contract-complications" rows="2" placeholder="Complication Text">{{#each contract.complications}}{{this.text}}&#10;{{/each}}</textarea>
+        </label>
+
+        <label>
+          Exits - one per line
+          <textarea name="contract-exits" rows="2" placeholder="Scene names">{{#each contract.exits}}{{this}}&#10;{{/each}}</textarea>
+        </label>
+
+        <button type="button" data-action="saveContract">Save Contract</button>
+      </form>
+
+      {{#if contract.progress}}
+        <details class="rhapsody-contract-progress">
+          <summary>Progress: {{contract.progress.cluesRevealed.length}} clues, {{contract.progress.complicationsTriggered.length}} complications</summary>
+          <div class="progress-details">
+            {{#if contract.progress.cluesRevealed}}
+              <p><strong>Clues Revealed:</strong> {{#each contract.progress.cluesRevealed}}{{this}} {{/each}}</p>
+            {{/if}}
+            {{#if contract.progress.complicationsTriggered}}
+              <p><strong>Complications:</strong> {{#each contract.progress.complicationsTriggered}}{{this}} {{/each}}</p>
+            {{/if}}
+            {{#if contract.progress.hiddenLeaks}}
+              <p class="leak-warning"><strong>Hidden Leaks!</strong> {{#each contract.progress.hiddenLeaks}}{{this}} {{/each}}</p>
+            {{/if}}
+            {{#if contract.progress.freeform}}
+              <ul>
+                {{#each contract.progress.freeform}}
+                  <li><em>{{this.type}}</em>: {{this.text}}</li>
+                {{/each}}
+              </ul>
+            {{/if}}
+          </div>
+        </details>
+      {{/if}}
+    </section>
+  {{else}}
+    <p class="rhapsody-info">View a scene to manage its contract.</p>
+  {{/if}}
+
   <button type="button" data-action="testConnection">Test connection</button>
   {{#if lastResponse}}
     <pre class="rhapsody-response">{{lastResponse}}</pre>

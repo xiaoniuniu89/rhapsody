@@ -2,24 +2,28 @@ import { id as moduleId } from "../module.json";
 import RhapsodyApp from "./ui/RhapsodyApp";
 import { IntrospectionService } from "./engine/IntrospectionService";
 import { MemoryService } from "./memory/MemoryService";
+import { SceneContractService } from "./engine/contract/SceneContractService";
 import { MoveRegistry } from "./engine/moves/registry";
 import { MoveDispatcher } from "./engine/MoveDispatcher";
 import { registerMemoryMoves } from "./engine/moves/memory";
 import { registerOracleMoves } from "./engine/moves/oracle";
 import { registerStubMoves } from "./engine/moves/stubs";
+import { registerContractMoves } from "./engine/moves/contractMoves";
 import { OpenAIClient } from "./llm/OpenAIClient";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
 export const introspection = new IntrospectionService();
 export const memory = new MemoryService();
+export const contract = new SceneContractService();
 export const moveRegistry = new MoveRegistry();
 
 const client = new OpenAIClient();
 registerMemoryMoves(moveRegistry, memory);
 registerOracleMoves(moveRegistry);
+registerContractMoves(moveRegistry);
 registerStubMoves(moveRegistry);
-export const moveDispatcher = new MoveDispatcher(moveRegistry, client);
+export const moveDispatcher = new MoveDispatcher(moveRegistry, client, contract);
 
 Hooks.once("init", () => {
   if (!game.settings) return;

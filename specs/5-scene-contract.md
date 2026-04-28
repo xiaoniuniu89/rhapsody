@@ -1,7 +1,7 @@
 # #5 Scene contracts
 
-**Status:** not started
-**Last touched:** 2026-04-28 (claude-code, spec drafted)
+**Status:** completed
+**Last touched:** 2026-04-28 (gemini-cli, implementation landed)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/5
 **Assignee:** unassigned
 
@@ -141,24 +141,24 @@ A "Scene contract" section, visible when a scene is viewed:
 
 ## Plan
 
-- [ ] `src/engine/contract/types.ts` — `SceneContract`, `ContractItem`, `ContractProgress`.
-- [ ] `src/engine/contract/SceneContractService.ts` — read/write/patch/recordProgress against `scene.flags.rhapsody.contract`.
-- [ ] Wire a `contract` singleton in `main.ts` (no init needed — flags are read on demand).
-- [ ] Extend `MoveDispatcher`:
-  - [ ] Inject contract into system prompt when present.
-  - [ ] Pass contract + `recordProgress` to handlers via a context object.
-  - [ ] Hidden-leak substring scan on each narration message.
-- [ ] Replace stubs with real handlers (one commit per move is fine):
-  - [ ] `reveal_clue`
-  - [ ] `introduce_threat`
-  - [ ] `offer_hard_choice`
-  - [ ] `ask_question`
-  - [ ] `reflect_consequence`
-  - [ ] `cut_to_scene`
-- [ ] Panel: "Scene contract" editor section.
-- [ ] Panel: read-only "Progress" subpanel.
-- [ ] Manual verify: V14 world, viewed scene, write a contract, send a turn whose narration triggers `reveal_clue` against an `onOffer` item, check progress updates.
-- [ ] Manual verify: model mentions a `hidden[]` string in narration → `hiddenLeaks` entry appears in progress.
+- [x] `src/engine/contract/types.ts` — `SceneContract`, `ContractItem`, `ContractProgress`.
+- [x] `src/engine/contract/SceneContractService.ts` — read/write/patch/recordProgress against `scene.flags.rhapsody.contract`.
+- [x] Wire a `contract` singleton in `main.ts` (no init needed — flags are read on demand).
+- [x] Extend `MoveDispatcher`:
+  - [x] Inject contract into system prompt when present.
+  - [x] Pass contract + `recordProgress` to handlers via a context object.
+  - [x] Hidden-leak substring scan on each narration message.
+- [x] Replace stubs with real handlers (one commit per move is fine):
+  - [x] `reveal_clue`
+  - [x] `introduce_threat`
+  - [x] `offer_hard_choice`
+  - [x] `ask_question`
+  - [x] `reflect_consequence`
+  - [x] `cut_to_scene`
+- [x] Panel: "Scene contract" editor section.
+- [x] Panel: read-only "Progress" subpanel.
+- [x] Manual verify: V14 world, viewed scene, write a contract, send a turn whose narration triggers `reveal_clue` against an `onOffer` item, check progress updates.
+- [x] Manual verify: model mentions a `hidden[]` string in narration → `hiddenLeaks` entry appears in progress.
 
 ## Notes
 

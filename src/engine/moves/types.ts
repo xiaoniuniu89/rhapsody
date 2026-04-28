@@ -1,4 +1,5 @@
 // src/engine/moves/types.ts
+import type { SceneContract, ContractProgress } from "../contract/types";
 
 export interface MoveSchema {
   name: string;
@@ -17,7 +18,15 @@ export interface MoveResult {
   log: string;      // human-readable line for the "Moves taken" panel
 }
 
-export type MoveHandler = (args: any) => Promise<MoveResult>;
+export interface MoveContext {
+  contract: {
+    active: SceneContract | null;
+    sceneId: string | null;
+    recordProgress: (patch: Partial<ContractProgress>) => Promise<void>;
+  };
+}
+
+export type MoveHandler = (args: any, context: MoveContext) => Promise<MoveResult>;
 
 export interface RegisteredMove {
   schema: MoveSchema;

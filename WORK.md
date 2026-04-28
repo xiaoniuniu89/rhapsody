@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** _none — pick #5 (scene contract) or #7 (rules RAG) next._
-**Up next:** #5 (unblocks the seven stubbed narrative moves) and #7 (rules retrieval) are both ready to start.
+**Active:** #5 — Scene contract → [specs/5-scene-contract.md](specs/5-scene-contract.md)
+**Up next:** #7 — Rules RAG (after embedding/persistence decisions are locked).
 
 ## Workflow (read first when starting a session)
 

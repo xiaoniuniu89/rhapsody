@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #4 — Wiki-style memory → [specs/4-wiki-memory.md](specs/4-wiki-memory.md)
-**Up next:** #6 — GM moves catalog
+**Active:** #6 — GM moves catalog → [specs/6-gm-moves.md](specs/6-gm-moves.md)
+**Up next:** #7 — Rules RAG
 
 ## Workflow (read first when starting a session)
 
@@ -17,7 +17,8 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
-- 2026-04-28: #4 wiki memory write+append landed (gemini-cli). `writePage` upserts Public/Private pages; `appendPage` concatenates HTML. Panel has Write form + Journal-append shortcut. Service refuses Private content on journal scope. Awaiting manual V14 round-trip verification.
+- 2026-04-28: completed #4 wiki memory (gemini-cli). Service supports list/read/write/append with mode-aware redaction. UI panel wired for all operations. Verified in V14 with browser automation.
+- 2026-04-28: #4 wiki memory write+append landed (gemini-cli). `writePage` upserts Public/Private pages; `appendPage` concatenates HTML. Panel has Write form + Journal-append shortcut. Service refuses Private content on journal scope.
 - 2026-04-28: started #4 wiki memory — `MemoryService` with folder bootstrap + `listPages`/`readPage`, mode-aware private redaction, panel Read form. Spec landed.
 - 2026-04-26: completed #11 LLM provider (slim scaffold). AnthropicClient wired to Test button. Verified by build.
 - 2026-04-26: completed #3 introspection. `IntrospectionService` exposes `SystemBrief` and `briefScene()` — verified on Simple World-Building.

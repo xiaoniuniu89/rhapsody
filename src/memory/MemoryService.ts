@@ -157,7 +157,7 @@ export class MemoryService {
     const existing = this.findSubPage(entry, section);
     if (existing) {
       const currentContent = existing.text?.content ?? "";
-      const newContent = currentContent ? `${currentContent}\n${html}` : html;
+      const newContent = currentContent ? `${currentContent}<br>${html}` : html;
       await existing.update({ "text.content": newContent });
     } else {
       await entry.createEmbeddedDocuments("JournalEntryPage", [

@@ -89,7 +89,7 @@ class MemoryService {
 - [x] Panel "Write" form (scope + name + textareas for public/private).
 - [x] Panel "Append to journal" shortcut for fast session logging.
 - [x] Refuse writing `Private` to journal scope at the service boundary.
-- [ ] Manual verify: V14 world, both modes, create+read+append round-trips.
+- [x] Manual verify: V14 world, both modes, create+read+append round-trips.
 
 ## Notes
 

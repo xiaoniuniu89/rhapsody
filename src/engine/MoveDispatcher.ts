@@ -40,7 +40,10 @@ export class MoveDispatcher {
       }
 
       // Add assistant message to history for potential next loop
-      messages.push(message);
+      messages.push({
+        ...message,
+        content: message.content || ""
+      });
 
       if (message.content) {
         narration = message.content;
@@ -84,7 +87,7 @@ export class MoveDispatcher {
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: JSON.stringify(resultData)
+            content: JSON.stringify(resultData ?? { ok, log })
           });
         }
         // Continue loop to give model a chance to respond to tool results

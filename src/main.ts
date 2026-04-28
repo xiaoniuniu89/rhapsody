@@ -14,7 +14,12 @@ let rhapsodyApp: RhapsodyApp;
 export const introspection = new IntrospectionService();
 export const memory = new MemoryService();
 export const moveRegistry = new MoveRegistry();
-export let moveDispatcher: MoveDispatcher;
+
+const client = new OpenAIClient();
+registerMemoryMoves(moveRegistry, memory);
+registerOracleMoves(moveRegistry);
+registerStubMoves(moveRegistry);
+export const moveDispatcher = new MoveDispatcher(moveRegistry, client);
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -68,12 +73,6 @@ Hooks.once("ready", async () => {
   console.log("🎵 Rhapsody system brief", brief);
   await memory.init();
   console.log("🎵 Rhapsody memory ready", memory.folderIds);
-
-  const client = new OpenAIClient();
-  registerMemoryMoves(moveRegistry, memory);
-  registerOracleMoves(moveRegistry);
-  registerStubMoves(moveRegistry);
-  moveDispatcher = new MoveDispatcher(moveRegistry, client);
 
   rhapsodyApp = new RhapsodyApp();
 });

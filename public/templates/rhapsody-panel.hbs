@@ -1,6 +1,44 @@
 <section class="rhapsody-panel">
+  <div class="rhapsody-mode">Mode: <strong>{{mode}}</strong></div>
+
   <button type="button" data-action="testConnection">Test connection</button>
   {{#if lastResponse}}
     <pre class="rhapsody-response">{{lastResponse}}</pre>
+  {{/if}}
+
+  <form class="rhapsody-memory-form" onsubmit="return false;">
+    <h3>Memory read</h3>
+    <label>
+      Scope
+      <select name="memory-scope">
+        <option value="bible">Bible (private)</option>
+        <option value="journal">Journal (public)</option>
+      </select>
+    </label>
+    <label>
+      Page name
+      <input type="text" name="memory-name" placeholder="e.g. Lord Vance" />
+    </label>
+    <button type="button" data-action="readPage">Read</button>
+  </form>
+
+  {{#if lastPageError}}
+    <p class="rhapsody-error">{{lastPageError}}</p>
+  {{/if}}
+
+  {{#if lastPage}}
+    <div class="rhapsody-page">
+      <h3>{{lastPage.name}}</h3>
+      <section class="rhapsody-page-public">
+        <h4>Public</h4>
+        <div>{{{lastPage.public}}}</div>
+      </section>
+      {{#if lastPage.private}}
+        <section class="rhapsody-page-private">
+          <h4>Private (GM only)</h4>
+          <div>{{{lastPage.private}}}</div>
+        </section>
+      {{/if}}
+    </div>
   {{/if}}
 </section>

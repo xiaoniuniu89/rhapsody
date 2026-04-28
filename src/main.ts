@@ -1,10 +1,12 @@
 import { id as moduleId } from "../module.json";
 import RhapsodyApp from "./ui/RhapsodyApp";
 import { IntrospectionService } from "./engine/IntrospectionService";
+import { MemoryService } from "./memory/MemoryService";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
 export const introspection = new IntrospectionService();
+export const memory = new MemoryService();
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -36,12 +38,28 @@ Hooks.once("init", () => {
     type: String,
     default: "gpt-4o-mini",
   });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "rhapsodyMode", {
+    name: "Rhapsody Mode",
+    hint: "Play hides bible private sections; Prep shows everything.",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {
+      play: "Play (player-facing)",
+      prep: "Prep (GM full access)",
+    },
+    default: "play",
+  });
 });
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   console.log(`🎵 Rhapsody ${moduleId} ready`);
   const brief = introspection.init();
   console.log("🎵 Rhapsody system brief", brief);
+  await memory.init();
+  console.log("🎵 Rhapsody memory ready", memory.folderIds);
   rhapsodyApp = new RhapsodyApp();
 });
 

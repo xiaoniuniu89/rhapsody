@@ -6,6 +6,36 @@
     <pre class="rhapsody-response">{{lastResponse}}</pre>
   {{/if}}
 
+  <form class="rhapsody-turn-form" onsubmit="return false;">
+    <h3>Send turn</h3>
+    <label>
+      What do you do?
+      <textarea name="player-message" rows="3" placeholder="I search the library for clues about the cult."></textarea>
+    </label>
+    <button type="button" data-action="sendTurn">Send Turn</button>
+  </form>
+
+  {{#if turnResult}}
+    <div class="rhapsody-turn-result">
+      <h4>GM Narration</h4>
+      <div class="rhapsody-narration">{{{turnResult.narration}}}</div>
+
+      {{#if turnResult.movesTaken}}
+        <details class="rhapsody-moves">
+          <summary>Moves taken ({{turnResult.movesTaken.length}})</summary>
+          <ul>
+            {{#each turnResult.movesTaken}}
+              <li class="{{#if this.ok}}ok{{else}}error{{/if}}">
+                <strong>{{this.name}}</strong>: {{this.log}}
+                <pre>{{#if this.args}}{{{json this.args}}}{{/if}}</pre>
+              </li>
+            {{/each}}
+          </ul>
+        </details>
+      {{/if}}
+    </div>
+  {{/if}}
+
   <form class="rhapsody-memory-form" onsubmit="return false;">
     <h3>Memory read</h3>
     <label>

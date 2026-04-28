@@ -1,4 +1,5 @@
 import type { MemoryScope, PageContent, RhapsodyMode } from "../memory/types";
+import type { TurnResult } from "../engine/MoveDispatcher";
 import { id as moduleId } from "../../module.json";
 
 // @ts-ignore — foundry global
@@ -9,6 +10,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
   lastPage: PageContent | null = null;
   lastPageError: string | null = null;
   lastPageSuccess: string | null = null;
+  turnResult: TurnResult | null = null;
 
   static DEFAULT_OPTIONS = {
     id: "rhapsody",
@@ -24,6 +26,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       readPage: RhapsodyApp.#onReadPage,
       writePage: RhapsodyApp.#onWritePage,
       appendJournal: RhapsodyApp.#onAppendJournal,
+      sendTurn: RhapsodyApp.#onSendTurn,
     },
   };
 
@@ -42,6 +45,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       lastPage: this.lastPage,
       lastPageError: this.lastPageError,
       lastPageSuccess: this.lastPageSuccess,
+      turnResult: this.turnResult,
       mode,
     };
   }
@@ -55,6 +59,58 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       );
     } catch (err) {
       this.lastResponse = "Error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onSendTurn(this: RhapsodyApp) {
+    // @ts-ignore — AppV2 element
+    const root: HTMLElement = this.element;
+    const playerMessage =
+      root.querySelector<HTMLTextAreaElement>('[name="player-message"]')?.value.trim() ?? "";
+
+    if (!playerMessage) return;
+
+    try {
+      const { moveDispatcher } = await import("../main");
+      this.turnResult = await moveDispatcher.runTurn(playerMessage);
+      this.lastPageError = null;
+    } catch (err) {
+      this.lastPageError = "Error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onReadPage(this: RhapsodyApp) {
+    // @ts-ignore — AppV2 element
+    const root: HTMLElement = this.element;
+    const scope = (
+      root.querySelector<HTMLSelectElement>('[name="memory-scope"]')?.value ??
+      "bible"
+    ) as MemoryScope;
+    const name =
+      root.querySelector<HTMLInputElement>('[name="memory-name"]')?.value.trim() ?? "";
+
+    if (!name) {
+      this.lastPageError = "Enter a page name.";
+      this.lastPage = null;
+      this.render();
+      return;
+    }
+
+    try {
+      const { memory } = await import("../main");
+      const page = memory.readPage(scope, name);
+      if (!page) {
+        this.lastPageError = `Page not found: ${name}`;
+        this.lastPage = null;
+      } else {
+        this.lastPage = page;
+        this.lastPageError = null;
+      }
+    } catch (err) {
+      this.lastPageError = "Error: " + (err as Error).message;
+      this.lastPage = null;
     }
     this.render();
   }
@@ -126,40 +182,6 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
     } catch (err) {
       this.lastPageError = "Error: " + (err as Error).message;
       this.lastPageSuccess = null;
-    }
-    this.render();
-  }
-
-  static async #onReadPage(this: RhapsodyApp) {
-    // @ts-ignore — AppV2 element
-    const root: HTMLElement = this.element;
-    const scope = (
-      root.querySelector<HTMLSelectElement>('[name="memory-scope"]')?.value ??
-      "bible"
-    ) as MemoryScope;
-    const name =
-      root.querySelector<HTMLInputElement>('[name="memory-name"]')?.value.trim() ?? "";
-
-    if (!name) {
-      this.lastPageError = "Enter a page name.";
-      this.lastPage = null;
-      this.render();
-      return;
-    }
-
-    try {
-      const { memory } = await import("../main");
-      const page = memory.readPage(scope, name);
-      if (!page) {
-        this.lastPageError = `Page not found: ${name}`;
-        this.lastPage = null;
-      } else {
-        this.lastPage = page;
-        this.lastPageError = null;
-      }
-    } catch (err) {
-      this.lastPageError = "Error: " + (err as Error).message;
-      this.lastPage = null;
     }
     this.render();
   }

@@ -28,6 +28,63 @@
   gap: 0.5rem;
 }
 
+.rhapsody-turn-form {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rhapsody-turn-result {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rhapsody-narration {
+  font-family: var(--font-primary, sans-serif);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.rhapsody-moves summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.rhapsody-moves ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.rhapsody-moves li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.rhapsody-moves li.ok {
+  border-left: 3px solid #27ae60;
+  padding-left: 0.5rem;
+}
+
+.rhapsody-moves li.error {
+  border-left: 3px solid #c0392b;
+  padding-left: 0.5rem;
+}
+
+.rhapsody-moves pre {
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem;
+  margin: 0.25rem 0;
+}
+
 .rhapsody-memory-form label,
 .rhapsody-memory-write-form label,
 .rhapsody-memory-append-form label {

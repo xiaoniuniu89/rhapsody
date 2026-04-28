@@ -2,11 +2,19 @@ import { id as moduleId } from "../module.json";
 import RhapsodyApp from "./ui/RhapsodyApp";
 import { IntrospectionService } from "./engine/IntrospectionService";
 import { MemoryService } from "./memory/MemoryService";
+import { MoveRegistry } from "./engine/moves/registry";
+import { MoveDispatcher } from "./engine/MoveDispatcher";
+import { registerMemoryMoves } from "./engine/moves/memory";
+import { registerOracleMoves } from "./engine/moves/oracle";
+import { registerStubMoves } from "./engine/moves/stubs";
+import { OpenAIClient } from "./llm/OpenAIClient";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
 export const introspection = new IntrospectionService();
 export const memory = new MemoryService();
+export const moveRegistry = new MoveRegistry();
+export let moveDispatcher: MoveDispatcher;
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -60,8 +68,18 @@ Hooks.once("ready", async () => {
   console.log("🎵 Rhapsody system brief", brief);
   await memory.init();
   console.log("🎵 Rhapsody memory ready", memory.folderIds);
+
+  const client = new OpenAIClient();
+  registerMemoryMoves(moveRegistry, memory);
+  registerOracleMoves(moveRegistry);
+  registerStubMoves(moveRegistry);
+  moveDispatcher = new MoveDispatcher(moveRegistry, client);
+
   rhapsodyApp = new RhapsodyApp();
 });
+
+// @ts-ignore
+Handlebars.registerHelper("json", (obj) => JSON.stringify(obj, null, 2));
 
 // @ts-ignore
 Hooks.on("renderSidebar", (_app, html) => {
@@ -84,7 +102,11 @@ Hooks.on("renderSidebar", (_app, html) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    rhapsodyApp.render({ force: true });
+    if (rhapsodyApp) {
+      rhapsodyApp.render({ force: true });
+    } else {
+      ui.notifications?.warn("Rhapsody is still initializing...");
+    }
   });
 
   const collapseButton = tabsMenu.querySelector("li:last-child");

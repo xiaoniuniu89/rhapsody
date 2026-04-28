@@ -33,4 +33,17 @@ export class OpenAIClient {
     }
     return text;
   }
+
+  async sendTurn(options: {
+    messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
+    tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
+  }): Promise<OpenAI.Chat.Completions.ChatCompletion> {
+    const client = this.getClient();
+    return await client.chat.completions.create({
+      model: this.getModel(),
+      max_tokens: 1024,
+      messages: options.messages,
+      tools: options.tools,
+    });
+  }
 }

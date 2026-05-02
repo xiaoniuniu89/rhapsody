@@ -122,10 +122,17 @@ Existing `openaiApiKey` covers Whisper and TTS too.
 - [ ] 🤖 Panel CSS for voice section in `src/styles/rhapsody.css`.
 - [ ] 🤖 `RhapsodyApp` handlers — `interruptTts` action; subscribe to `VoiceSession` status changes to re-render.
 - [ ] 🤖 `npm run build` passes.
-- [ ] 🧠 Manual verify: hold space, say "open the door", release; GM replies in voice + transcript. Verify mic icon (OS-level) goes off between utterances. Verify aside speech (key up) is not captured. Verify interrupt cuts mid-sentence. Note the cost-telemetry log line.
+- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+  - `new_page` → Foundry world URL; `take_snapshot` to confirm Rhapsody panel renders the voice section.
+  - `evaluate_script` to call `voiceSession.handleUtterance("open the door")` directly (bypasses mic perms which MCP can't grant). Assert: transcript pane shows the utterance, GM reply lands, console logs the cost telemetry line.
+  - `list_console_messages` after the turn — assert no errors, expected `🎵` log lines present.
+  - `evaluate_script` to call `voiceSession.interrupt()` mid-TTS; assert audio element is paused/cleared.
+  - Assert `voiceSession.status` transitions through expected states (`idle → transcribing → gm-speaking → idle`).
+- [ ] 🧠 Hands-on verify (cannot be automated): hold space and actually speak; confirm mic indicator behavior, aside-speech privacy, audible TTS playback.
 
 ## Notes
 
+- **Smoke testing convention.** Every spec from the north-star pivot forward includes a `chrome-devtools-mcp` smoke-test step in its plan. Spec acceptance is "build passes + MCP smoke test passes"; pure hands-on verification (mic, audible TTS, real asset libraries) is called out separately where it can't be automated. The MCP tools live behind the `chrome-devtools-mcp:chrome-devtools` skill.
 - Foundry runs in a browser context — `MediaRecorder` and Web Audio are available without a polyfill.
 - `Space` as default may conflict with Foundry's own bindings (it's used in some scenes). If so, fall back to a less-conflicting default like `Backquote` and document it. The user can rebind anyway via Foundry's UI.
 - Keep `VoiceSession` UI-state reactive but trivial — no real state-management library; panel re-render is cheap.

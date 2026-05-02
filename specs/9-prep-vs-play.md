@@ -94,7 +94,16 @@ In `rhapsody-panel.hbs`:
 - [ ] 🤖 `RhapsodyApp` handler — `setMode(mode)` action.
 - [ ] 🤖 Panel CSS for mode banner.
 - [ ] 🤖 `npm run build` passes.
-- [ ] 🧠 Manual verify: Toggle Prep, write a bible page via AI ("draft a one-paragraph profile of the cult leader"). Toggle Play, confirm AI refuses to invent and uses `roll_oracle` / clarifying-question fallback; confirm `write_page` is not in the tool list (console). PTT does nothing in Prep; works in Play.
+- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+  - `new_page` → Foundry world.
+  - `click` mode banner → Prep. `evaluate_script` reads `getMode()` → `"prep"`.
+  - `evaluate_script` reads `moveRegistry.toolSchemas({ mode: "prep" })` — assert `write_page` is present.
+  - `evaluate_script` reads `moveRegistry.toolSchemas({ mode: "play" })` — assert `write_page` is **absent**.
+  - `evaluate_script` to call `moveDispatcher.runTurn("draft a one-paragraph profile of the cult leader")` in Prep — assert at least one `write_page` move in `movesTaken` and `ok: true`.
+  - `click` mode banner → Play. `evaluate_script` reads `getMode()` → `"play"`.
+  - `evaluate_script` to attempt forcing a `write_page` tool call (simulate misbehaving model by calling the dispatcher's tool-call handler directly with `{ name: "write_page", args: ... }`) — assert it returns `{ ok: false, log: /mode_disallowed/ }`.
+  - `take_snapshot` in each mode to confirm conditional sections render correctly (Memory Write form hidden in Play; Voice section hidden in Prep).
+  - `list_console_messages` — assert no errors across the toggle sequence.
 
 ## Notes
 

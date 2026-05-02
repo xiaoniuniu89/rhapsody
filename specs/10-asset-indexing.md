@@ -115,7 +115,12 @@ Add an "Assets" section to `rhapsody-panel.hbs`, near "Rules":
 - [ ] 🤖 Panel CSS in `src/styles/rhapsody.css`.
 - [ ] 🤖 `RhapsodyApp` handler — `reindexAssets` action.
 - [ ] 🤖 `npm run build` passes.
-- [ ] 🧠 Manual verify with a real asset library: reindex, confirm counts plausible, query "tavern" / "combat" / "goblin" through the debug input and inspect ranking.
+- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+  - `new_page` → Foundry world; `take_snapshot` to confirm Assets section renders.
+  - `click` the "Reindex" button; `wait_for` the status line to update; assert non-zero counts via `evaluate_script` reading `assetIndex.status()`.
+  - `evaluate_script` calls: `assetIndex.findMap("tavern")`, `findAudio("combat")`, `findToken("goblin")`. Assert top-1 result for each is plausible (name contains the query token or a known synonym).
+  - Reload the page; `evaluate_script` to read `assetIndex.status().builtAt` — assert persisted, non-null.
+  - `list_console_messages` — assert no errors during reindex.
 
 ## Notes
 

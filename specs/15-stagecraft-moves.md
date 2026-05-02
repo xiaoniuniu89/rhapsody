@@ -124,7 +124,17 @@ All buttons call `StagecraftService` directly — same code path as the AI moves
 - [ ] 🤖 Panel CSS in `src/styles/rhapsody.css`.
 - [ ] 🤖 `RhapsodyApp` handlers — `setMap`, `placeToken`, `removeToken`, `playAmbient`, `stopAmbient`, `setLighting`, `panCamera`.
 - [ ] 🤖 `npm run build` passes.
-- [ ] 🧠 Manual verify with a real asset library: AI turn "you push open the tavern door" should resolve into a tavern map, tavern ambient track, and warm lighting in one turn. Verify each move also works manually from the panel. Verify failures (no matching map / no active scene) surface to the AI as `ok: false` and the model recovers.
+- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+  - `new_page` → Foundry world (asset index pre-built from #10 smoke test).
+  - `evaluate_script` calls per move, asserting Foundry state changes:
+    - `stagecraft.setSceneMap({ query: "tavern" })` → `game.scenes.viewed.name` matches a tavern asset.
+    - `stagecraft.playAmbient({ query: "tavern" })` → `game.playlists.find(p => p.playing)` is non-null.
+    - `stagecraft.setLighting("torchlit")` → `game.scenes.viewed.environment.darknessLevel` ≈ 0.7.
+    - `stagecraft.placeToken("Goblin")` → token count on the active scene increments by 1.
+    - `stagecraft.panCamera({ x: 1000, y: 1000 })` → `canvas.stage.pivot` updates.
+  - End-to-end AI turn: `evaluate_script` to call `moveDispatcher.runTurn("you push open the tavern door")`. Assert `result.movesTaken` includes `set_scene_map` + `play_ambient` + `set_lighting`, all `ok: true`.
+  - Failure path: `stagecraft.setSceneMap({ query: "thisDoesNotExist__" })` should return `ok: false` with an `AssetNotFoundError`-shaped log; `list_console_messages` shows no uncaught exception.
+  - `take_screenshot` after each major step for the test artifact.
 
 ## Notes
 

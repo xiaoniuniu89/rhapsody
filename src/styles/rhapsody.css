@@ -241,3 +241,140 @@
   line-height: 1.4;
   opacity: 0.9;
 }
+
+.rhapsody-state-section {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.rhapsody-state-section h4 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.state-clock-list,
+.state-disp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.state-clock {
+  padding: 0.4rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.state-clock-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.state-clock-count {
+  margin-left: auto;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+.state-clock-bar {
+  display: flex;
+  gap: 2px;
+  margin: 0.3rem 0;
+}
+
+.state-clock-bar .cell {
+  flex: 1;
+  height: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+}
+
+.state-clock-bar .cell.filled {
+  background: rgba(255, 180, 80, 0.85);
+}
+
+.state-clock-actions {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-end;
+}
+
+.state-clock-actions button {
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.state-clock-form,
+.state-disp-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.state-clock-form input,
+.state-disp-form input {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  flex: 1 1 auto;
+  min-width: 6em;
+}
+
+.state-disp {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+
+.state-disp-scale {
+  display: inline-flex;
+  gap: 1px;
+  margin-left: 0.4rem;
+}
+
+.state-disp-scale .cell {
+  width: 1.5em;
+  text-align: center;
+  font-size: 0.7rem;
+  padding: 0.1rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1px;
+  opacity: 0.5;
+}
+
+.state-disp-scale .cell.active {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.state-disp-scale .cell.active.neg {
+  background: rgba(220, 80, 80, 0.7);
+}
+
+.state-disp-scale .cell.active.pos {
+  background: rgba(80, 200, 120, 0.7);
+}
+
+.state-disp-scale .cell.active.zero {
+  background: rgba(180, 180, 180, 0.5);
+}
+
+.state-disp-value {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}

@@ -33,6 +33,11 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       saveRulesSettings: RhapsodyApp.#onSaveRulesSettings,
       reindexRules: RhapsodyApp.#onReindexRules,
       queryRules: RhapsodyApp.#onQueryRules,
+      createClock: RhapsodyApp.#onCreateClock,
+      advanceClock: RhapsodyApp.#onAdvanceClock,
+      removeClock: RhapsodyApp.#onRemoveClock,
+      shiftDisposition: RhapsodyApp.#onShiftDisposition,
+      removeDisposition: RhapsodyApp.#onRemoveDisposition,
     },
   };
 
@@ -86,6 +91,29 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
 
     const rulesStatus = rulesIndex.status();
 
+    const { worldState } = await import("../main");
+    const snap = worldState.snapshot();
+    const stateView = {
+      clocks: Object.values(snap.clocks).map(c => ({
+        ...c,
+        cells: Array.from({ length: c.segments }, (_, i) => i < c.filled),
+      })),
+      dispositions: Object.values(snap.dispositions).map(d => {
+        const labels = ["−3", "−2", "−1", "0", "+1", "+2", "+3"];
+        return {
+          ...d,
+          cells: labels.map((label, i) => {
+            const v = i - 3;
+            return {
+              label,
+              active: v === d.value,
+              tone: v < 0 ? "neg" : v > 0 ? "pos" : "zero",
+            };
+          }),
+        };
+      }),
+    };
+
     return {
       lastResponse: this.lastResponse,
       lastPage: this.lastPage,
@@ -100,7 +128,8 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
         status: rulesStatus,
         queryResults: this.rulesQueryResults,
         reindexProgress: this.reindexProgress
-      }
+      },
+      state: stateView,
     };
   }
 
@@ -308,6 +337,87 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
     } catch (err) {
       this.lastPageError = "Error: " + (err as Error).message;
       this.lastPageSuccess = null;
+    }
+    this.render();
+  }
+
+  static async #onCreateClock(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const name = root.querySelector<HTMLInputElement>('[name="clock-name"]')?.value.trim() ?? "";
+    const segments = parseInt(root.querySelector<HTMLInputElement>('[name="clock-segments"]')?.value ?? "4", 10);
+    const label = root.querySelector<HTMLInputElement>('[name="clock-label"]')?.value.trim() || undefined;
+    if (!name) {
+      this.lastPageError = "Enter a clock name.";
+      this.render();
+      return;
+    }
+    try {
+      const { worldState } = await import("../main");
+      await worldState.setClock(name, segments, label);
+      const form = root.querySelector<HTMLFormElement>('.state-clock-form');
+      form?.querySelectorAll<HTMLInputElement>('input[type="text"]').forEach(i => (i.value = ""));
+    } catch (err) {
+      this.lastPageError = "Clock error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onAdvanceClock(this: RhapsodyApp, _event: Event, target: HTMLElement) {
+    const name = target.dataset.clock ?? "";
+    const delta = parseInt(target.dataset.delta ?? "1", 10);
+    if (!name) return;
+    try {
+      const { worldState } = await import("../main");
+      await worldState.advanceClock(name, delta, "manual");
+    } catch (err) {
+      this.lastPageError = "Advance error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onRemoveClock(this: RhapsodyApp, _event: Event, target: HTMLElement) {
+    const name = target.dataset.clock ?? "";
+    if (!name) return;
+    try {
+      const { worldState } = await import("../main");
+      await worldState.removeClock(name);
+    } catch (err) {
+      this.lastPageError = "Remove error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onShiftDisposition(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const npc = root.querySelector<HTMLInputElement>('[name="disp-npc"]')?.value.trim() ?? "";
+    const delta = parseInt(root.querySelector<HTMLInputElement>('[name="disp-delta"]')?.value ?? "1", 10);
+    const reason = root.querySelector<HTMLInputElement>('[name="disp-reason"]')?.value.trim() || undefined;
+    if (!npc) {
+      this.lastPageError = "Enter an NPC name.";
+      this.render();
+      return;
+    }
+    try {
+      const { worldState } = await import("../main");
+      await worldState.shiftDisposition(npc, delta, reason);
+      const form = root.querySelector<HTMLFormElement>('.state-disp-form');
+      form?.querySelectorAll<HTMLInputElement>('input[type="text"]').forEach(i => (i.value = ""));
+    } catch (err) {
+      this.lastPageError = "Disposition error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onRemoveDisposition(this: RhapsodyApp, _event: Event, target: HTMLElement) {
+    const npc = target.dataset.npc ?? "";
+    if (!npc) return;
+    try {
+      const { worldState } = await import("../main");
+      await worldState.removeDisposition(npc);
+    } catch (err) {
+      this.lastPageError = "Remove error: " + (err as Error).message;
     }
     this.render();
   }

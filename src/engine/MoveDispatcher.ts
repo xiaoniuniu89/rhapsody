@@ -32,7 +32,8 @@ export class MoveDispatcher {
     const activeContract = this.contractService.active();
     const rulesStatus = this.rulesIndex.status();
     
-    const systemPrompt = ["You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player."];
+    const systemPrompt = ["You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player.",
+      "\nWorld state mutations (clocks, NPC dispositions) must go through advance_clock, set_clock, shift_disposition. Call read_state first to inspect existing entries so you advance/shift instead of creating duplicates. Do not invent state in narration — use these moves so changes persist."];
 
     if (rulesStatus && rulesStatus.chunkCount > 0) {
       systemPrompt.push("\nWhen you cite a rule in your narration, include the citation string from the tool result verbatim. Foundry will render it as a clickable link.");

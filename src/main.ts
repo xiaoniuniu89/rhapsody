@@ -4,13 +4,14 @@ import { IntrospectionService } from "./engine/IntrospectionService";
 import { MemoryService } from "./memory/MemoryService";
 import { SceneContractService } from "./engine/contract/SceneContractService";
 import { RulesIndexService } from "./engine/rules/RulesIndexService";
+import { WorldStateService } from "./engine/state/WorldStateService";
 import { MoveRegistry } from "./engine/moves/registry";
 import { MoveDispatcher } from "./engine/MoveDispatcher";
 import { registerMemoryMoves } from "./engine/moves/memory";
 import { registerOracleMoves } from "./engine/moves/oracle";
-import { registerStubMoves } from "./engine/moves/stubs";
 import { registerContractMoves } from "./engine/moves/contractMoves";
 import { registerRulesMoves } from "./engine/moves/rules";
+import { registerStateMoves } from "./engine/moves/state";
 import { OpenAIClient } from "./llm/OpenAIClient";
 import "./styles/rhapsody.css";
 
@@ -20,13 +21,14 @@ export const memory = new MemoryService();
 export const contract = new SceneContractService();
 const client = new OpenAIClient();
 export const rulesIndex = new RulesIndexService(client);
+export const worldState = new WorldStateService();
 export const moveRegistry = new MoveRegistry();
 
 registerMemoryMoves(moveRegistry, memory);
 registerOracleMoves(moveRegistry);
 registerContractMoves(moveRegistry);
 registerRulesMoves(moveRegistry, rulesIndex);
-registerStubMoves(moveRegistry);
+registerStateMoves(moveRegistry, worldState);
 export const moveDispatcher = new MoveDispatcher(moveRegistry, client, contract, rulesIndex);
 
 Hooks.once("init", () => {
@@ -93,6 +95,8 @@ Hooks.once("ready", async () => {
   console.log("🎵 Rhapsody memory ready", memory.folderIds);
   await rulesIndex.init();
   console.log("🎵 Rhapsody rules index ready", rulesIndex.status());
+  worldState.init();
+  console.log("🎵 Rhapsody world state ready", worldState.snapshot());
 
   rhapsodyApp = new RhapsodyApp();
 });

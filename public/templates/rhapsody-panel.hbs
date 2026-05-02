@@ -62,6 +62,71 @@
     <p class="rhapsody-info">View a scene to manage its contract.</p>
   {{/if}}
 
+  <section class="rhapsody-state-section">
+    <h3>World State</h3>
+
+    <div class="state-clocks">
+      <h4>Clocks</h4>
+      {{#if state.clocks.length}}
+        <ul class="state-clock-list">
+          {{#each state.clocks}}
+            <li class="state-clock">
+              <div class="state-clock-head">
+                <strong>{{this.name}}</strong>
+                {{#if this.label}}<em>— {{this.label}}</em>{{/if}}
+                <span class="state-clock-count">{{this.filled}}/{{this.segments}}</span>
+              </div>
+              <div class="state-clock-bar" data-filled="{{this.filled}}" data-total="{{this.segments}}">
+                {{#each this.cells}}<span class="cell {{#if this}}filled{{/if}}"></span>{{/each}}
+              </div>
+              <div class="state-clock-actions">
+                <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="-1">−</button>
+                <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="1">+</button>
+                <button type="button" data-action="removeClock" data-clock="{{this.name}}">×</button>
+              </div>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="rhapsody-info">No clocks.</p>
+      {{/if}}
+
+      <form class="state-clock-form" onsubmit="return false;">
+        <input type="text" name="clock-name" placeholder="Clock name" />
+        <input type="number" name="clock-segments" min="1" value="4" style="width: 4em;" />
+        <input type="text" name="clock-label" placeholder="Label (optional)" />
+        <button type="button" data-action="createClock">Create</button>
+      </form>
+    </div>
+
+    <div class="state-dispositions">
+      <h4>Dispositions</h4>
+      {{#if state.dispositions.length}}
+        <ul class="state-disp-list">
+          {{#each state.dispositions}}
+            <li class="state-disp">
+              <strong>{{this.npc}}</strong>
+              <span class="state-disp-scale">
+                {{#each this.cells}}<span class="cell {{#if this.active}}active{{/if}} {{this.tone}}">{{this.label}}</span>{{/each}}
+              </span>
+              <span class="state-disp-value">{{this.value}}</span>
+              <button type="button" data-action="removeDisposition" data-npc="{{this.npc}}">×</button>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="rhapsody-info">No dispositions tracked.</p>
+      {{/if}}
+
+      <form class="state-disp-form" onsubmit="return false;">
+        <input type="text" name="disp-npc" placeholder="NPC name" />
+        <input type="number" name="disp-delta" value="1" style="width: 4em;" />
+        <input type="text" name="disp-reason" placeholder="Reason (optional)" />
+        <button type="button" data-action="shiftDisposition">Shift</button>
+      </form>
+    </div>
+  </section>
+
   <section class="rhapsody-rules-section">
     <h3>Rules (RAG)</h3>
     

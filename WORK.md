@@ -17,6 +17,7 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
+- 2026-05-02: implemented #8 world-state engine v1 (clocks + dispositions). `WorldStateService` over the existing `rhapsodyState` setting; five moves (`advance_clock`, `set_clock`, `remove_clock`, `shift_disposition`, `read_state`) replacing the old stub. Panel section with clocks/dispositions UI. Pending manual in-Foundry verification.
 - 2026-04-28: completed #7 Rules RAG (gemini-cli). Chunker + Embedder + Indexer + query_rules move. Index persisted in hidden JournalEntry. UI section for pack selection, reindexing, and manual query with citations.
 - 2026-04-28: completed #5 scene contract (gemini-cli). Data model + storage in scene flags + editor panel + dispatcher integration with hidden-leak detection. Six narrative moves promoted from stubs to real handlers.
 - 2026-04-28: completed #6 GM moves (gemini-cli). Catalog + dispatcher + multi-step tool-call loop. Memory tools + roll_oracle real; seven narrative/state moves stubbed pending #5/#8. Verified end-to-end through the panel.

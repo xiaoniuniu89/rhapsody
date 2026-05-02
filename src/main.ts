@@ -3,12 +3,14 @@ import RhapsodyApp from "./ui/RhapsodyApp";
 import { IntrospectionService } from "./engine/IntrospectionService";
 import { MemoryService } from "./memory/MemoryService";
 import { SceneContractService } from "./engine/contract/SceneContractService";
+import { RulesIndexService } from "./engine/rules/RulesIndexService";
 import { MoveRegistry } from "./engine/moves/registry";
 import { MoveDispatcher } from "./engine/MoveDispatcher";
 import { registerMemoryMoves } from "./engine/moves/memory";
 import { registerOracleMoves } from "./engine/moves/oracle";
 import { registerStubMoves } from "./engine/moves/stubs";
 import { registerContractMoves } from "./engine/moves/contractMoves";
+import { registerRulesMoves } from "./engine/moves/rules";
 import { OpenAIClient } from "./llm/OpenAIClient";
 import "./styles/rhapsody.css";
 
@@ -16,14 +18,16 @@ let rhapsodyApp: RhapsodyApp;
 export const introspection = new IntrospectionService();
 export const memory = new MemoryService();
 export const contract = new SceneContractService();
+const client = new OpenAIClient();
+export const rulesIndex = new RulesIndexService(client);
 export const moveRegistry = new MoveRegistry();
 
-const client = new OpenAIClient();
 registerMemoryMoves(moveRegistry, memory);
 registerOracleMoves(moveRegistry);
 registerContractMoves(moveRegistry);
+registerRulesMoves(moveRegistry, rulesIndex);
 registerStubMoves(moveRegistry);
-export const moveDispatcher = new MoveDispatcher(moveRegistry, client, contract);
+export const moveDispatcher = new MoveDispatcher(moveRegistry, client, contract, rulesIndex);
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -69,6 +73,16 @@ Hooks.once("init", () => {
     },
     default: "play",
   });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "rulesPacks", {
+    name: "Rules Packs",
+    hint: "Compendium pack IDs to index for rules retrieval.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: [],
+  });
 });
 
 Hooks.once("ready", async () => {
@@ -77,6 +91,8 @@ Hooks.once("ready", async () => {
   console.log("🎵 Rhapsody system brief", brief);
   await memory.init();
   console.log("🎵 Rhapsody memory ready", memory.folderIds);
+  await rulesIndex.init();
+  console.log("🎵 Rhapsody rules index ready", rulesIndex.status());
 
   rhapsodyApp = new RhapsodyApp();
 });

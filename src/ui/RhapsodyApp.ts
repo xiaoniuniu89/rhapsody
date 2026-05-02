@@ -11,6 +11,8 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
   lastPageError: string | null = null;
   lastPageSuccess: string | null = null;
   turnResult: TurnResult | null = null;
+  rulesQueryResults: any[] | null = null;
+  reindexProgress: string | null = null;
 
   static DEFAULT_OPTIONS = {
     id: "rhapsody",
@@ -28,6 +30,9 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       appendJournal: RhapsodyApp.#onAppendJournal,
       sendTurn: RhapsodyApp.#onSendTurn,
       saveContract: RhapsodyApp.#onSaveContract,
+      saveRulesSettings: RhapsodyApp.#onSaveRulesSettings,
+      reindexRules: RhapsodyApp.#onReindexRules,
+      queryRules: RhapsodyApp.#onQueryRules,
     },
   };
 
@@ -43,6 +48,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
     const mode = game.settings.get(moduleId, "rhapsodyMode") as RhapsodyMode;
     // @ts-ignore
     const activeScene = game.scenes.viewed;
+    console.log("🎵 Rhapsody DEBUG: _prepareContext activeScene:", activeScene?.name, activeScene?.id);
     let contractData = null;
 
     if (activeScene) {
@@ -65,6 +71,21 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       }
     }
 
+    const { rulesIndex } = await import("../main");
+    // @ts-ignore
+    const selectedPacks = game.settings.get(moduleId, "rulesPacks") as string[];
+    // @ts-ignore
+    const allPacks = Array.from(game.packs)
+      .filter(p => p.documentName === "JournalEntry")
+      .map(p => ({
+        id: p.collection,
+        label: p.metadata.label,
+        // @ts-ignore
+        selected: selectedPacks.includes(p.collection)
+      }));
+
+    const rulesStatus = rulesIndex.status();
+
     return {
       lastResponse: this.lastResponse,
       lastPage: this.lastPage,
@@ -74,7 +95,69 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(ApplicationV
       mode,
       activeScene,
       contract: contractData,
+      rules: {
+        allPacks,
+        status: rulesStatus,
+        queryResults: this.rulesQueryResults,
+        reindexProgress: this.reindexProgress
+      }
     };
+  }
+
+  static async #onSaveRulesSettings(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const checkboxes = root.querySelectorAll<HTMLInputElement>('input[name="rules-pack"]:checked');
+    const selectedPacks = Array.from(checkboxes).map(cb => cb.value);
+
+    try {
+      // @ts-ignore
+      await game.settings.set(moduleId, "rulesPacks", selectedPacks);
+      this.lastPageSuccess = "Rules settings saved.";
+    } catch (err) {
+      this.lastPageError = "Error saving rules settings: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onReindexRules(this: RhapsodyApp) {
+    this.reindexProgress = "Initializing...";
+    this.render();
+
+    try {
+      const { rulesIndex } = await import("../main");
+      await rulesIndex.reindex((msg) => {
+        this.reindexProgress = msg;
+        this.render();
+      });
+      this.reindexProgress = null;
+      this.lastPageSuccess = "Reindex complete.";
+    } catch (err) {
+      this.reindexProgress = null;
+      this.lastPageError = "Reindex error: " + (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onQueryRules(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const query = root.querySelector<HTMLTextAreaElement>('[name="rules-query"]')?.value.trim() ?? "";
+    if (!query) return;
+
+    try {
+      const { rulesIndex } = await import("../main");
+      const hits = await rulesIndex.query(query);
+      this.rulesQueryResults = hits.map(h => ({
+        excerpt: h.chunk.text,
+        similarity: Math.round(h.similarity * 100),
+        // @ts-ignore
+        citation: TextEditor.enrichHTML(`@UUID[${h.chunk.entryUuid}.JournalEntryPage.${h.chunk.pageId}]{${h.chunk.entryName} › ${h.chunk.headingPath.join(" › ") || h.chunk.pageName}}`)
+      }));
+    } catch (err) {
+      this.lastPageError = "Query error: " + (err as Error).message;
+    }
+    this.render();
   }
 
   static async #onSaveContract(this: RhapsodyApp) {

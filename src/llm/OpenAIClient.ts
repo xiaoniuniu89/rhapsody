@@ -34,6 +34,15 @@ export class OpenAIClient {
     return text;
   }
 
+  async embed(input: string | string[]): Promise<number[][]> {
+    const client = this.getClient();
+    const response = await client.embeddings.create({
+      model: "text-embedding-3-small",
+      input,
+    });
+    return response.data.map((d) => d.embedding);
+  }
+
   async sendTurn(options: {
     messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
     tools?: OpenAI.Chat.Completions.ChatCompletionTool[];

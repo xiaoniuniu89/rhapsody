@@ -62,6 +62,54 @@
     <p class="rhapsody-info">View a scene to manage its contract.</p>
   {{/if}}
 
+  <section class="rhapsody-rules-section">
+    <h3>Rules (RAG)</h3>
+    
+    <div class="rules-packs">
+      <p>Source Compendia:</p>
+      <div class="rules-pack-list">
+        {{#each rules.allPacks}}
+          <label>
+            <input type="checkbox" name="rules-pack" value="{{this.id}}" {{#if this.selected}}checked{{/if}}>
+            {{this.label}} <small>({{this.id}})</small>
+          </label>
+        {{/each}}
+      </div>
+      <button type="button" data-action="saveRulesSettings">Save Packs</button>
+    </div>
+
+    <div class="rules-status">
+      {{#if rules.status}}
+        <p>Index: {{rules.status.chunkCount}} chunks from {{rules.status.packs.length}} packs.</p>
+      {{else}}
+        <p>No index built.</p>
+      {{/if}}
+      
+      <button type="button" data-action="reindexRules" {{#if rules.reindexProgress}}disabled{{/if}}>
+        {{#if rules.reindexProgress}}Indexing...{{else}}Reindex{{/if}}
+      </button>
+      {{#if rules.reindexProgress}}
+        <p class="progress-text">{{rules.reindexProgress}}</p>
+      {{/if}}
+    </div>
+
+    <form class="rules-query-form" onsubmit="return false;">
+      <textarea name="rules-query" rows="2" placeholder="Ask a rules question..."></textarea>
+      <button type="button" data-action="queryRules">Query</button>
+    </form>
+
+    {{#if rules.queryResults}}
+      <div class="rules-results">
+        {{#each rules.queryResults}}
+          <div class="rules-hit">
+            <div class="rules-citation">{{{this.citation}}} ({{this.similarity}}%)</div>
+            <div class="rules-excerpt">{{this.excerpt}}</div>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
+  </section>
+
   <button type="button" data-action="testConnection">Test connection</button>
   {{#if lastResponse}}
     <pre class="rhapsody-response">{{lastResponse}}</pre>

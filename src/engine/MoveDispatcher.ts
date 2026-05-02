@@ -2,6 +2,7 @@
 import type { MoveRegistry } from "./moves/registry";
 import type { OpenAIClient } from "../llm/OpenAIClient";
 import type { SceneContractService } from "./contract/SceneContractService";
+import type { RulesIndexService } from "./rules/RulesIndexService";
 import type OpenAI from "openai";
 
 export interface TurnResult {
@@ -13,16 +14,29 @@ export class MoveDispatcher {
   private registry: MoveRegistry;
   private client: OpenAIClient;
   private contractService: SceneContractService;
+  private rulesIndex: RulesIndexService;
 
-  constructor(registry: MoveRegistry, client: OpenAIClient, contractService: SceneContractService) {
+  constructor(
+    registry: MoveRegistry,
+    client: OpenAIClient,
+    contractService: SceneContractService,
+    rulesIndex: RulesIndexService
+  ) {
     this.registry = registry;
     this.client = client;
     this.contractService = contractService;
+    this.rulesIndex = rulesIndex;
   }
 
   async runTurn(playerMessage: string): Promise<TurnResult> {
     const activeContract = this.contractService.active();
+    const rulesStatus = this.rulesIndex.status();
+    
     const systemPrompt = ["You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player."];
+
+    if (rulesStatus && rulesStatus.chunkCount > 0) {
+      systemPrompt.push("\nWhen you cite a rule in your narration, include the citation string from the tool result verbatim. Foundry will render it as a clickable link.");
+    }
 
     if (activeContract) {
       const { contract } = activeContract;

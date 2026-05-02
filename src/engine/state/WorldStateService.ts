@@ -15,6 +15,15 @@ export class WorldStateService {
   private state: WorldState = emptyState();
 
   init(): void {
+    this.reload();
+  }
+
+  snapshot(): WorldState {
+    this.reload();
+    return this.state;
+  }
+
+  private reload(): void {
     // @ts-ignore — foundry global
     const raw = game.settings.get(moduleId, SETTING_KEY) as Partial<WorldState> | undefined;
     if (raw && (raw as any).version === 1) {
@@ -28,11 +37,8 @@ export class WorldStateService {
     }
   }
 
-  snapshot(): WorldState {
-    return this.state;
-  }
-
   async setClock(name: string, segments: number, label?: string): Promise<Clock> {
+    this.reload();
     const key = name.trim();
     if (!key) throw new Error("Clock name required");
     if (!Number.isFinite(segments) || segments < 1) {
@@ -55,6 +61,7 @@ export class WorldStateService {
     segments: number = 1,
     reason?: string,
   ): Promise<{ clock: Clock; created: boolean }> {
+    this.reload();
     const key = name.trim();
     if (!key) throw new Error("Clock name required");
     let clock = this.state.clocks[key];
@@ -77,6 +84,7 @@ export class WorldStateService {
   }
 
   async removeClock(name: string): Promise<void> {
+    this.reload();
     delete this.state.clocks[name];
     await this.persist();
   }
@@ -86,6 +94,7 @@ export class WorldStateService {
     delta: number,
     reason?: string,
   ): Promise<Disposition> {
+    this.reload();
     const key = npc.trim();
     if (!key) throw new Error("NPC name required");
     const existingKey = Object.keys(this.state.dispositions).find(
@@ -105,6 +114,7 @@ export class WorldStateService {
   }
 
   async removeDisposition(npc: string): Promise<void> {
+    this.reload();
     const key = Object.keys(this.state.dispositions).find(
       k => k.toLowerCase() === npc.toLowerCase(),
     );

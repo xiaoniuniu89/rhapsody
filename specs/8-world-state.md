@@ -121,8 +121,14 @@ Re-render the panel after every state mutation (the existing scene-contract sect
 - [x] Panel CSS in `src/styles/rhapsody.css`.
 - [x] Panel handlers in `RhapsodyApp.ts` for create-clock, ±/delete, shift-disposition, delete-disposition.
 - [x] `npm run build` passes.
-- [ ] Manual verify: create a clock from panel, advance via panel, advance via AI turn ("the cult's ritual is closer to completing"), confirm persistence across reload.
-- [ ] Manual verify: shift disposition from panel and via AI turn, confirm clamping at ±3.
+- [x] Manual verify: create a clock from panel, advance via panel, advance via AI turn ("the cult's ritual is closer to completing"), confirm persistence across reload.
+- [x] Manual verify: shift disposition from panel and via AI turn, confirm clamping at ±3.
+
+## Bug fix during verification
+
+In Vite dev mode, dynamic imports get a `?t=<timestamp>` cache-bust query that the static script-tag load (Foundry's `esmodules: ["src/main.ts"]`) does not. ESM module identity is per URL, so `RhapsodyApp`'s `await import("../main")` and Foundry's static load resolved to two different `main.ts` instances — and therefore two different `WorldStateService` singletons. The panel's instance never had `init()` called, so it always rendered empty even though the dispatcher's instance had data. (Memory/contract/rules sidestep this because their state lives in Foundry documents, not in-memory.)
+
+Fix: `WorldStateService.snapshot()` and every mutator now `reload()` from the world setting before reading/writing. Settings are the single source of truth; the in-memory cache is just a working copy. No more cross-instance staleness.
 
 ## Notes
 

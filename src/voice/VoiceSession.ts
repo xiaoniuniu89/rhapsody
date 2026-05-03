@@ -83,6 +83,7 @@ export class VoiceSession {
   }
 
   async handleUtterance(text: string): Promise<void> {
+    if (getMode() === "prep") return;
     const trimmed = text.trim();
     if (!trimmed) return;
     this.transcript.push({ role: "user", text: trimmed, ts: Date.now() });

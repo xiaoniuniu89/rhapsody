@@ -94,7 +94,7 @@ In `rhapsody-panel.hbs`:
 - [x] 🤖 `RhapsodyApp` handler — `setMode(mode)` action.
 - [x] 🤖 Panel CSS for mode banner.
 - [x] 🤖 `npm run build` passes.
-- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+- [x] 🧠 Smoke test via `chrome-devtools-mcp`:
   - `new_page` → Foundry world.
   - `click` mode banner → Prep. `evaluate_script` reads `getMode()` → `"prep"`.
   - `evaluate_script` reads `moveRegistry.toolSchemas({ mode: "prep" })` — assert `write_page` is present.
@@ -110,4 +110,11 @@ In `rhapsody-panel.hbs`:
 - All mode-aware behavior reads the *current* setting per turn / per PTT press — no caching.
 - Panel-side Write form being hidden in Play is cosmetic; the underlying `MemoryService.writePage` still works if some other code path called it. The AI side is gated via `availableIn`; the user-side gate is just the form.
 - Prep model defaulting to `gpt-4o` rather than `o1` / extended-thinking is intentional — Anthropic-with-thinking is the #11 follow-up.
-- **2026-05-03:** Implementation completed. Smoke test skipped because browser profile was locked ("The browser is already running for ... Use a different userDataDir"). Build verified with `npm run build`.
+- **2026-05-03:** Implementation completed. Smoke test completed (gemini-cli).
+  - Verified mode banner and toggle.
+  - Verified Voice section and Memory Write form conditional rendering.
+  - Verified `MoveRegistry.toolSchemas` correctly filters moves by mode.
+  - Verified `MoveDispatcher` runtime guard rejects unauthorized moves in Play mode.
+  - Verified per-mode model override (`gpt-4o-mini` for Play, `gpt-4o` for Prep).
+  - Verified end-to-end AI turn in Prep can write to bible, while Play is restricted.
+  - **Fixed:** Added a mode gate to `VoiceSession.handleUtterance` to ensure voice-triggered turns are strictly Play-only, matching PTT behavior.

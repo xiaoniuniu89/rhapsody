@@ -30,6 +30,10 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
     },
     position: { width: 600, height: 700 },
     actions: {
+      beginSession: RhapsodyApp.#onBeginSession,
+      endSession: RhapsodyApp.#onEndSession,
+      toggleMute: RhapsodyApp.#onToggleMute,
+      forget60s: RhapsodyApp.#onForget60s,
       testConnection: RhapsodyApp.#onTestConnection,
       readPage: RhapsodyApp.#onReadPage,
       writePage: RhapsodyApp.#onWritePage,
@@ -113,17 +117,21 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       this.voiceUnsubscribe = voiceSession.onChange(() => this.render());
     }
     const voiceStatusLabel: Record<VoiceSession["status"], string> = {
-      idle: "Idle — hold key to talk",
-      listening: "Listening…",
+      idle: voiceSession.micState === "passive" ? "Passive listening…" : "Idle",
+      listening: "Active listening…",
       transcribing: "Transcribing…",
       thinking: "GM thinking…",
       "gm-speaking": "GM speaking…",
+      muted: "Muted",
       error: "Error — see transcript",
     };
     const voiceView = {
+      isInSession: voiceSession.isInSession,
       status: voiceSession.status,
+      micState: voiceSession.micState,
       statusLabel: voiceStatusLabel[voiceSession.status],
       speaking: voiceSession.status === "gm-speaking",
+      isMuted: voiceSession.micState === "mute",
       transcript: voiceSession.transcript.map((e) => ({
         role: e.role,
         text: e.text,
@@ -181,6 +189,30 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       state: stateView,
       voice: voiceView,
     };
+  }
+
+  static async #onBeginSession(this: RhapsodyApp) {
+    const { voiceSession } = await import("../main");
+    await voiceSession.beginSession();
+    this.render();
+  }
+
+  static async #onEndSession(this: RhapsodyApp) {
+    const { voiceSession } = await import("../main");
+    await voiceSession.endSession();
+    this.render();
+  }
+
+  static async #onToggleMute(this: RhapsodyApp) {
+    const { voiceSession } = await import("../main");
+    voiceSession.toggleMute();
+    this.render();
+  }
+
+  static async #onForget60s(this: RhapsodyApp) {
+    const { voiceSession } = await import("../main");
+    voiceSession.forget60s();
+    this.render();
   }
 
   static async #onInterruptTts(this: RhapsodyApp) {

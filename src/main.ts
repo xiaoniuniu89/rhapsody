@@ -21,6 +21,12 @@ import { WhisperSttProvider } from "./voice/WhisperSttProvider";
 import { OpenAITtsProvider } from "./voice/OpenAITtsProvider";
 import { AudioPlayer } from "./voice/AudioPlayer";
 import { VoiceSession } from "./voice/VoiceSession";
+import { AmbientBuffer } from "./voice/AmbientBuffer";
+import { Classifier } from "./engine/listening/Classifier";
+import { EscalationRule } from "./engine/listening/EscalationRule";
+import { BackgroundGm } from "./engine/listening/BackgroundGm";
+import { PendingStagecraft } from "./engine/listening/PendingStagecraft";
+import { Session } from "./engine/session/Session";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
@@ -51,13 +57,32 @@ const pttController = new PttController();
 const sttProvider = new WhisperSttProvider();
 const ttsProvider = new OpenAITtsProvider();
 const audioPlayer = new AudioPlayer();
+
+export const ambientBuffer = new AmbientBuffer();
+export const classifier = new Classifier(client);
+export const escalationRule = new EscalationRule();
+export const pendingStagecraft = new PendingStagecraft();
+export const backgroundGm = new BackgroundGm(client, memory, worldState, pendingStagecraft);
+export const session = new Session(moveDispatcher, memory);
+
 export const voiceSession = new VoiceSession(
   pttController,
   sttProvider,
   ttsProvider,
   audioPlayer,
   moveDispatcher,
+  ambientBuffer,
+  classifier,
+  escalationRule,
+  backgroundGm,
+  pendingStagecraft,
+  session,
 );
+
+// @ts-ignore
+session.onIdleTimeout = () => {
+  void voiceSession.endSession();
+};
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -84,6 +109,16 @@ Hooks.once("init", () => {
   game.settings.register(moduleId, "openaiModel", {
     name: "OpenAI Model",
     hint: "Model id, e.g. gpt-4o-mini, gpt-4o",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "gpt-4o-mini",
+  });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "openaiClassifierModel", {
+    name: "OpenAI Classifier Model",
+    hint: "Model for passive classification, e.g. gpt-4o-mini",
     scope: "world",
     config: true,
     type: String,
@@ -153,7 +188,10 @@ Hooks.once("ready", async () => {
 });
 
 window.addEventListener("beforeunload", () => {
-  if (voiceSession) voiceSession.logCostTelemetry();
+  if (voiceSession) {
+    voiceSession.logCostTelemetry();
+    void voiceSession.endSession();
+  }
 });
 
 // @ts-ignore

@@ -10,14 +10,33 @@
     </div>
   </header>
 
-  <section class="rhapsody-voice-section" data-voice-status="{{voice.status}}">
-    <div class="rhapsody-voice-status">
-      <span class="voice-indicator voice-{{voice.status}}"></span>
-      <span class="voice-label">{{voice.statusLabel}}</span>
-      {{#if voice.speaking}}
-        <button type="button" data-action="interruptTts" class="voice-interrupt">Interrupt</button>
-      {{/if}}
-    </div>
+  <section class="rhapsody-voice-section" data-voice-status="{{voice.status}}" data-mic-state="{{voice.micState}}">
+    {{#if voice.isInSession}}
+      <div class="rhapsody-session-pill">
+        <span class="voice-indicator voice-{{voice.status}}"></span>
+        <span class="voice-label">{{voice.statusLabel}}</span>
+        <div class="session-controls">
+          <button type="button" data-action="toggleMute" class="icon-button {{#if voice.isMuted}}active{{/if}}" data-tooltip="Toggle Mute">
+            <i class="fa-solid {{#if voice.isMuted}}fa-microphone-slash{{else}}fa-microphone{{/if}}"></i>
+          </button>
+          <button type="button" data-action="beginSession" class="icon-button" data-tooltip="Active Turn (Click/Hold)">
+            <i class="fa-solid fa-comment"></i>
+          </button>
+          {{#if voice.speaking}}
+            <button type="button" data-action="interruptTts" class="icon-button interrupt" data-tooltip="Interrupt GM">
+              <i class="fa-solid fa-stop"></i>
+            </button>
+          {{/if}}
+        </div>
+      </div>
+    {{else}}
+      <div class="rhapsody-idle-view">
+        <button type="button" data-action="beginSession" class="begin-session-btn">
+          <i class="fa-solid fa-play"></i> Begin Session
+        </button>
+      </div>
+    {{/if}}
+
     <ol class="rhapsody-voice-transcript">
       {{#each voice.transcript}}
         <li class="voice-line voice-{{this.role}}">
@@ -26,9 +45,16 @@
         </li>
       {{/each}}
       {{#unless voice.transcript.length}}
-        <li class="voice-line voice-empty"><em>No utterances yet. Hold the bound key (default <code>`</code>) to talk.</em></li>
+        <li class="voice-line voice-empty"><em>No utterances yet.</em></li>
       {{/unless}}
     </ol>
+
+    {{#if voice.isInSession}}
+      <div class="session-footer-actions">
+        <button type="button" data-action="forget60s" class="text-button">Forget last 60s</button>
+        <button type="button" data-action="endSession" class="text-button danger">End Session</button>
+      </div>
+    {{/if}}
   </section>
 
   <details class="rhapsody-debug-disclosure">

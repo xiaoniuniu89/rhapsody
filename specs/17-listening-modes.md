@@ -1,7 +1,7 @@
 # #17 Listening modes — Mute / Passive / Active + ambient GM context
 
 **Status:** spec locked, implementation pending
-**Last touched:** 2026-05-03 (claude-code)
+**Last touched:** 2026-05-03 (gemini-cli)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/17
 **Assignee:** unassigned
 
@@ -154,18 +154,18 @@ If we slip above, the levers are: drop passive Whisper to longer chunks (60s), o
 
 ## Plan
 
-- [ ] 🤖 `src/engine/listening/signals.ts` — hardcoded signal taxonomy + types.
-- [ ] 🤖 `src/voice/AmbientBuffer.ts` — 30s chunk store with rolling 5-min window.
-- [ ] 🤖 `src/voice/PassiveCapture.ts` — 30s tumbling MediaRecorder loop, Whisper per chunk, drops empty.
-- [ ] 🤖 `src/engine/listening/Classifier.ts` — cheap-model labeler, structured output.
-- [ ] 🤖 `src/engine/listening/EscalationRule.ts` — `3x signal+entity in 5min` counter.
-- [ ] 🤖 `src/engine/listening/BackgroundGm.ts` — main-model tick, mutation-only prompt, tool subset, no-narration enforcement.
-- [ ] 🤖 `src/engine/listening/PendingStagecraft.ts` — queue drained by next Active turn.
-- [ ] 🤖 `src/engine/session/Session.ts` — Idle/InSession state, Begin/End lifecycle, beforeunload + idle auto-end, session-log persistence.
-- [ ] 🤖 `src/voice/VoiceSession.ts` — extend with mic-state machine (Active/Passive/Mute), PTT + click-toggle for Active, Forget-60s.
-- [ ] 🤖 `src/ui/RhapsodyApp.ts` + panel template — Idle (Begin button) and InSession (status pill + minimal controls) views; keep #16 Debug disclosure for transcript + manual forms + End session.
-- [ ] 🤖 Telemetry — extend #14 counters with passive minutes, classifier cost, background-tick count, total session cost.
-- [ ] 🤖 `npm run build` passes.
+- [x] 🤖 `src/engine/listening/signals.ts` — hardcoded signal taxonomy + types.
+- [x] 🤖 `src/voice/AmbientBuffer.ts` — 30s chunk store with rolling 5-min window.
+- [x] 🤖 `src/voice/PassiveCapture.ts` — 30s tumbling MediaRecorder loop, Whisper per chunk, drops empty.
+- [x] 🤖 `src/engine/listening/Classifier.ts` — cheap-model labeler, structured output.
+- [x] 🤖 `src/engine/listening/EscalationRule.ts` — `3x signal+entity in 5min` counter.
+- [x] 🤖 `src/engine/listening/BackgroundGm.ts` — main-model tick, mutation-only prompt, tool subset, no-narration enforcement.
+- [x] 🤖 `src/engine/listening/PendingStagecraft.ts` — queue drained by next Active turn.
+- [x] 🤖 `src/engine/session/Session.ts` — Idle/InSession state, Begin/End lifecycle, beforeunload + idle auto-end, session-log persistence.
+- [x] 🤖 `src/voice/VoiceSession.ts` — extend with mic-state machine (Active/Passive/Mute), PTT + click-toggle for Active, Forget-60s.
+- [x] 🤖 `src/ui/RhapsodyApp.ts` + panel template — Idle (Begin button) and InSession (status pill + minimal controls) views; keep #16 Debug disclosure for transcript + manual forms + End session.
+- [x] 🤖 Telemetry — extend #14 counters with passive minutes, classifier cost, background-tick count, total session cost.
+- [x] 🤖 `npm run build` passes.
 - [ ] 🧠 MCP smoke test (chrome-devtools-mcp).
 - [ ] 🧠 Hands-on session (cannot automate): real microphone, Begin → ramble passively about an NPC 3+ times → confirm a background memory-write fires → Active turn → confirm queued stagecraft applies. Measure actual session cost.
 
@@ -181,4 +181,4 @@ If we slip above, the levers are: drop passive Whisper to longer chunks (60s), o
 
 ## Notes
 
-- Spec body mirrored from GH #17 issue body on creation.
+- 2026-05-03: implemented all robotic plan items. Session lifecycle (Idle/InSession), mic state machine (Mute/Passive/Active), ambient buffer, signal classification, escalation rules, and background GM ticks all landed. UI updated to show session pill when active and Begin button when idle. Telemetry extended to track passive minutes and classifier costs. Build passes. (gemini-cli)

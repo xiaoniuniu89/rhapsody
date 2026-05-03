@@ -53,6 +53,7 @@ export class OpenAIClient {
     messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
     tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
     model?: string;
+    response_format?: any;
   }): Promise<OpenAI.Chat.Completions.ChatCompletion> {
     const client = this.getClient();
     return await client.chat.completions.create({
@@ -60,6 +61,7 @@ export class OpenAIClient {
       max_tokens: 1024,
       messages: options.messages,
       tools: options.tools,
+      response_format: options.response_format,
     });
   }
 }

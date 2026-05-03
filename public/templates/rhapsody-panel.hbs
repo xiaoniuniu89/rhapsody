@@ -1,6 +1,13 @@
 <section class="rhapsody-panel">
-  <div class="rhapsody-mode">Mode: <strong>{{mode}}</strong></div>
+  <div class="rhapsody-mode-banner {{mode}}">
+    <div class="mode-label">Mode: <strong>{{mode}}</strong></div>
+    <div class="mode-toggles">
+      <button type="button" data-action="setMode" data-mode="play" class="{{#if isPlay}}active{{/if}}">Play</button>
+      <button type="button" data-action="setMode" data-mode="prep" class="{{#if isPrep}}active{{/if}}">Prep</button>
+    </div>
+  </div>
 
+  {{#if isPlay}}
   <section class="rhapsody-voice-section" data-voice-status="{{voice.status}}">
     <h3>Voice</h3>
     <div class="rhapsody-voice-status">
@@ -25,6 +32,7 @@
       {{/unless}}
     </ol>
   </section>
+  {{/if}}
 
   {{#if activeScene}}
     <section class="rhapsody-contract-section">
@@ -337,6 +345,7 @@
     <button type="button" data-action="readPage">Read</button>
   </form>
 
+  {{#if isPrep}}
   <form class="rhapsody-memory-write-form" onsubmit="return false;">
     <h3>Memory write</h3>
     <label>
@@ -373,6 +382,7 @@
     </label>
     <button type="button" data-action="appendJournal">Append to Journal</button>
   </form>
+  {{/if}}
 
   {{#if lastPageError}}
     <p class="rhapsody-error">{{lastPageError}}</p>

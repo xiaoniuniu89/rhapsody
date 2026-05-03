@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #9 — Prep vs Play (re-scoped).
-**Up next:** #11 — Model strategy.
+**Active:** #11 — Model strategy.
+**Up next:** #4 — Wiki memory (improvements).
 
 ## Workflow (read first when starting a session)
 
@@ -17,6 +17,7 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
+- 2026-05-03: completed #9 Prep vs Play modes (gemini-cli). Implemented mode-aware MoveDispatcher with per-mode system prompts and tool filtering. Added `openaiPrepModel` setting. Gated Voice PTT and panel forms by mode. Added mode banner with toggle. Verified by build.
 - 2026-05-03: completed #15 stagecraft moves (gemini-cli). Implemented StagecraftService + 7 GM moves (map, token, audio, lighting, camera) using AssetIndexService for fuzzy resolution. Added manual Stagecraft UI section to the panel with parity for all moves. Updated dispatcher system prompt to guide model in running the table. Verified by build.
 - 2026-05-02: completed #10 asset indexing (gemini-cli). AssetIndexService walks Scenes (maps), Playlists (audio), and Actors (tokens) including compendia. Heuristic tag extraction + fuzzy search. Panel UI with status and test query. Fixed #14 VoiceSession build error (erasableSyntaxOnly) to unblock. Verified in Foundry with browser automation.
 - 2026-05-02: north-star pivot. Vision is **voice-first, zero-friction, GM runs Foundry stagecraft**. Rewrote epic #1, opened #14 (Voice I/O, PTT + STT + TTS) and #15 (stagecraft moves), re-scoped #10 from "Foundry documents as bible" (now covered by #4/#5/#8) to "asset indexing for stagecraft". Re-scoped #9 (Play surface is voice, not panel). Vision saved to memory.

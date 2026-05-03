@@ -43,13 +43,20 @@ export class OpenAIClient {
     return response.data.map((d) => d.embedding);
   }
 
-  async sendTurn(options: {
+  /**
+   * Run a chat completion turn.
+   * @param options.messages - history including the new user message
+   * @param options.tools - optional tool schemas
+   * @param options.model - optional model override (e.g. from mode.ts)
+   */
+  async chat(options: {
     messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];
     tools?: OpenAI.Chat.Completions.ChatCompletionTool[];
+    model?: string;
   }): Promise<OpenAI.Chat.Completions.ChatCompletion> {
     const client = this.getClient();
     return await client.chat.completions.create({
-      model: this.getModel(),
+      model: options.model || this.getModel(),
       max_tokens: 1024,
       messages: options.messages,
       tools: options.tools,

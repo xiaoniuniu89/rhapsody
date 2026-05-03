@@ -1,7 +1,8 @@
-import type { MemoryScope, PageContent, RhapsodyMode } from "../memory/types";
+import type { PageContent } from "../memory/types";
 import type { TurnResult } from "../engine/MoveDispatcher";
 import type { VoiceSession } from "../voice/VoiceSession";
 import { id as moduleId } from "../../module.json";
+import { getMode, type RhapsodyMode } from "../engine/mode";
 
 // @ts-ignore — foundry global
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -30,6 +31,7 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
     },
     position: { width: 600, height: 700 },
     actions: {
+      setMode: RhapsodyApp.#onSetMode,
       testConnection: RhapsodyApp.#onTestConnection,
       readPage: RhapsodyApp.#onReadPage,
       writePage: RhapsodyApp.#onWritePage,
@@ -65,15 +67,12 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
 
   // @ts-ignore — AppV2 hook signature
   async _prepareContext() {
-    // @ts-ignore — foundry global
-    const mode = game.settings.get(moduleId, "rhapsodyMode") as RhapsodyMode;
+    const mode = getMode();
+    const isPlay = mode === "play";
+    const isPrep = mode === "prep";
+
     // @ts-ignore
     const activeScene = game.scenes.viewed;
-    console.log(
-      "🎵 Rhapsody DEBUG: _prepareContext activeScene:",
-      activeScene?.name,
-      activeScene?.id,
-    );
     let contractData = null;
 
     if (activeScene) {
@@ -173,6 +172,8 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       lastPageSuccess: this.lastPageSuccess,
       turnResult: this.turnResult,
       mode,
+      isPlay,
+      isPrep,
       activeScene,
       contract: contractData,
       rules: {
@@ -190,6 +191,18 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       state: stateView,
       voice: voiceView,
     };
+  }
+
+  static async #onSetMode(this: RhapsodyApp, _event: Event, target: HTMLElement) {
+    const mode = target.dataset.mode as RhapsodyMode;
+    if (!mode) return;
+    try {
+      // @ts-ignore
+      await game.settings.set(moduleId, "rhapsodyMode", mode);
+      this.render();
+    } catch (err) {
+      console.error("🎵 Rhapsody: Error setting mode", err);
+    }
   }
 
   static async #onInterruptTts(this: RhapsodyApp) {
@@ -506,9 +519,10 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
   static async #onReadPage(this: RhapsodyApp) {
     // @ts-ignore — AppV2 element
     const root: HTMLElement = this.element;
+    // @ts-ignore
     const scope = (root.querySelector<HTMLSelectElement>(
       '[name="memory-scope"]',
-    )?.value ?? "bible") as MemoryScope;
+    )?.value ?? "bible") as any;
     const name =
       root
         .querySelector<HTMLInputElement>('[name="memory-name"]')
@@ -541,8 +555,9 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
   static async #onWritePage(this: RhapsodyApp) {
     // @ts-ignore — AppV2 element
     const root: HTMLElement = this.element;
+    // @ts-ignore
     const scope = (root.querySelector<HTMLSelectElement>('[name="write-scope"]')
-      ?.value ?? "bible") as MemoryScope;
+      ?.value ?? "bible") as any;
     const name =
       root
         .querySelector<HTMLInputElement>('[name="write-name"]')

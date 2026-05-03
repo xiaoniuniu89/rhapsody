@@ -91,6 +91,16 @@ Hooks.once("init", () => {
   });
 
   // @ts-ignore
+  game.settings.register(moduleId, "openaiPrepModel", {
+    name: "OpenAI Prep Model",
+    hint: "Model to use in Prep mode, e.g. gpt-4o",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "gpt-4o",
+  });
+
+  // @ts-ignore
   game.settings.register(moduleId, "rhapsodyMode", {
     name: "Rhapsody Mode",
     hint: "Play hides bible private sections; Prep shows everything.",

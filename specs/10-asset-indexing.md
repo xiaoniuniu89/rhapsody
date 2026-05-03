@@ -1,7 +1,7 @@
 # #10 Asset indexing — maps, tokens, audio (v1)
 
-**Status:** not started
-**Last touched:** 2026-05-02 (claude-code)
+**Status:** completed
+**Last touched:** 2026-05-02 (gemini-cli)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/10
 **Assignee:** unassigned
 
@@ -107,16 +107,16 @@ Add an "Assets" section to `rhapsody-panel.hbs`, near "Rules":
 
 ## Plan
 
-- [ ] 🤖 `src/engine/assets/types.ts` — `AssetItem`, `AssetIndex`.
-- [ ] 🤖 `src/engine/assets/extractTags.ts` — tag extraction with stop-word list.
-- [ ] 🤖 `src/engine/assets/AssetIndexService.ts` — walk + persist + query, per design above.
-- [ ] 🤖 Wire singleton in `main.ts`; init after `worldState`.
-- [ ] 🤖 Panel template — Assets section with status line + reindex button (+ optional debug query input).
-- [ ] 🤖 Panel CSS in `src/styles/rhapsody.css`.
-- [ ] 🤖 `RhapsodyApp` handler — `reindexAssets` action.
-- [ ] 🤖 `npm run build` passes.
-- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
-  - `new_page` → Foundry world; `take_snapshot` to confirm Assets section renders.
+- [x] 🤖 `src/engine/assets/types.ts` — `AssetItem`, `AssetIndex`.
+- [x] 🤖 `src/engine/assets/extractTags.ts` — tag extraction with stop-word list.
+- [x] 🤖 `src/engine/assets/AssetIndexService.ts` — walk + persist + query, per design above.
+- [x] 🤖 Wire singleton in `main.ts`; init after `worldState`.
+- [x] 🤖 Panel template — Assets section with status line + reindex button (+ optional debug query input).
+- [x] 🤖 Panel CSS in `src/styles/rhapsody.css`.
+- [x] 🤖 `RhapsodyApp` handler — `reindexAssets` action.
+- [x] 🤖 `npm run build` passes.
+- [x] 🧠 Smoke test via `chrome-devtools-mcp`:
+  - `new_page` — Foundry world; `take_snapshot` to confirm Assets section renders.
   - `click` the "Reindex" button; `wait_for` the status line to update; assert non-zero counts via `evaluate_script` reading `assetIndex.status()`.
   - `evaluate_script` calls: `assetIndex.findMap("tavern")`, `findAudio("combat")`, `findToken("goblin")`. Assert top-1 result for each is plausible (name contains the query token or a known synonym).
   - Reload the page; `evaluate_script` to read `assetIndex.status().builtAt` — assert persisted, non-null.

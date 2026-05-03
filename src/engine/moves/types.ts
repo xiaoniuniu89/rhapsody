@@ -1,5 +1,5 @@
-// src/engine/moves/types.ts
 import type { SceneContract, ContractProgress } from "../contract/types";
+import type { RhapsodyMode } from "../mode";
 
 export interface MoveSchema {
   name: string;
@@ -34,4 +34,5 @@ export type MoveHandler = (
 export interface RegisteredMove {
   schema: MoveSchema;
   handler: MoveHandler;
+  availableIn?: RhapsodyMode[];
 }

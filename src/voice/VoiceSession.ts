@@ -3,6 +3,7 @@ import type { SpeechToTextProvider } from "./SpeechToTextProvider";
 import type { TextToSpeechProvider } from "./TextToSpeechProvider";
 import type { AudioPlayer } from "./AudioPlayer";
 import type { PttController } from "./PttController";
+import { getMode } from "../engine/mode";
 
 export type VoiceStatus =
   | "idle"
@@ -64,6 +65,7 @@ export class VoiceSession {
   }
 
   async startListening(): Promise<void> {
+    if (getMode() === "prep") return;
     if (this.player.playing) this.player.interrupt();
     this.setStatus("listening");
     await this.ptt.start();

@@ -122,7 +122,7 @@ Existing `openaiApiKey` covers Whisper and TTS too.
 - [x] 🤖 Panel CSS for voice section in `src/styles/rhapsody.css`.
 - [x] 🤖 `RhapsodyApp` handlers — `interruptTts` action; subscribe to `VoiceSession` status changes to re-render.
 - [x] 🤖 `npm run build` passes.
-- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+- [x] 🧠 Smoke test via `chrome-devtools-mcp`:
   - `new_page` → Foundry world URL; `take_snapshot` to confirm Rhapsody panel renders the voice section.
   - `evaluate_script` to call `voiceSession.handleUtterance("open the door")` directly (bypasses mic perms which MCP can't grant). Assert: transcript pane shows the utterance, GM reply lands, console logs the cost telemetry line.
   - `list_console_messages` after the turn — assert no errors, expected `🎵` log lines present.
@@ -133,6 +133,13 @@ Existing `openaiApiKey` covers Whisper and TTS too.
 ## Notes
 
 - 2026-05-03: services + main.ts wiring + panel section landed (claude-code). `npm run build` passes. Default PTT key is `Backquote` (the `Space` default would conflict with Foundry scene panning). Whisper duration estimation is best-effort via `<audio>` metadata (webm/opus container → may report Infinity in some browsers; falls back to 0). MCP smoke test + hands-on mic verify still outstanding.
+- 2026-05-03: MCP smoke test completed (gemini-cli). Verified:
+  - Rhapsody panel renders voice section with status, telemetry, and transcript.
+  - `voiceSession.handleUtterance` correctly triggers `MoveDispatcher`, updates transcript, and increments telemetry.
+  - `voiceSession.status` transitions correctly: `idle` → `thinking` → `gm-speaking`.
+  - `voiceSession.interrupt()` successfully resets status to `idle`.
+  - Cost telemetry logs to console correctly.
+  - UI re-renders on voice session state changes (verified after handling Vite cache-busting `?t=` which caused dual `main.ts` singleton instances).
 - **Smoke testing convention.** Every spec from the north-star pivot forward includes a `chrome-devtools-mcp` smoke-test step in its plan. Spec acceptance is "build passes + MCP smoke test passes"; pure hands-on verification (mic, audible TTS, real asset libraries) is called out separately where it can't be automated. The MCP tools live behind the `chrome-devtools-mcp:chrome-devtools` skill.
 - Foundry runs in a browser context — `MediaRecorder` and Web Audio are available without a polyfill.
 - `Space` as default may conflict with Foundry's own bindings (it's used in some scenes). If so, fall back to a less-conflicting default like `Backquote` and document it. The user can rebind anyway via Foundry's UI.

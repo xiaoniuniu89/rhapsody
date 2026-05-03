@@ -379,12 +379,53 @@
   opacity: 0.8;
 }
 
-.rhapsody-assets-section {
+.rhapsody-assets-section,
+.rhapsody-stagecraft-manual {
   background: rgba(0, 0, 0, 0.1);
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 1.5rem;
   border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.stagecraft-group {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stagecraft-group h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stagecraft-form {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.stagecraft-form input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.lighting-presets {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.lighting-presets button {
+  flex: 1;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.rhapsody-assets-section {
 }
 
 .assets-status {

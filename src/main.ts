@@ -13,6 +13,8 @@ import { registerOracleMoves } from "./engine/moves/oracle";
 import { registerContractMoves } from "./engine/moves/contractMoves";
 import { registerRulesMoves } from "./engine/moves/rules";
 import { registerStateMoves } from "./engine/moves/state";
+import { StagecraftService } from "./engine/stagecraft/StagecraftService";
+import { registerStagecraftMoves } from "./engine/moves/stagecraft";
 import { OpenAIClient } from "./llm/OpenAIClient";
 import { PttController } from "./voice/PttController";
 import { WhisperSttProvider } from "./voice/WhisperSttProvider";
@@ -28,6 +30,7 @@ export const contract = new SceneContractService();
 const client = new OpenAIClient();
 export const rulesIndex = new RulesIndexService(client);
 export const assetIndex = new AssetIndexService();
+export const stagecraft = new StagecraftService(assetIndex);
 export const worldState = new WorldStateService();
 export const moveRegistry = new MoveRegistry();
 
@@ -36,6 +39,7 @@ registerOracleMoves(moveRegistry);
 registerContractMoves(moveRegistry);
 registerRulesMoves(moveRegistry, rulesIndex);
 registerStateMoves(moveRegistry, worldState);
+registerStagecraftMoves(moveRegistry, stagecraft);
 export const moveDispatcher = new MoveDispatcher(
   moveRegistry,
   client,

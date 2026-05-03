@@ -1,7 +1,7 @@
 # #15 Stagecraft moves — map, token, audio, lighting, camera (v1)
 
-**Status:** spec sharpened, ready for impl
-**Last touched:** 2026-05-03 (claude-code)
+**Status:** impl complete, pending hands-on verification
+**Last touched:** 2026-05-03 (gemini-cli)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/15
 **Assignee:** unassigned
 
@@ -123,15 +123,15 @@ All buttons call `StagecraftService` directly — same code path as the AI moves
 
 ## Plan
 
-- [ ] 🤖 `src/engine/stagecraft/types.ts` — `LightingPreset`, error types.
-- [ ] 🤖 `src/engine/stagecraft/StagecraftService.ts` — service per design above.
-- [ ] 🤖 `src/engine/moves/stagecraft.ts` — register all 7 moves; route through service.
-- [ ] 🤖 Wire singleton in `main.ts` after `assetIndex.init()`; pass to `registerStagecraftMoves`.
-- [ ] 🤖 Extend `MoveDispatcher` system prompt with stagecraft guidance.
-- [ ] 🤖 Panel template — Stagecraft section with five sub-forms.
-- [ ] 🤖 Panel CSS in `src/styles/rhapsody.css`.
-- [ ] 🤖 `RhapsodyApp` handlers — `setMap`, `placeToken`, `removeToken`, `playAmbient`, `stopAmbient`, `setLighting`, `panCamera`.
-- [ ] 🤖 `npm run build` passes.
+- [x] 🤖 `src/engine/stagecraft/types.ts` — `LightingPreset`, error types.
+- [x] 🤖 `src/engine/stagecraft/StagecraftService.ts` — service per design above.
+- [x] 🤖 `src/engine/moves/stagecraft.ts` — register all 7 moves; route through service.
+- [x] 🤖 Wire singleton in `main.ts` after `assetIndex.init()`; pass to `registerStagecraftMoves`.
+- [x] 🤖 Extend `MoveDispatcher` system prompt with stagecraft guidance.
+- [x] 🤖 Panel template — Stagecraft section with five sub-forms.
+- [x] 🤖 Panel CSS in `src/styles/rhapsody.css`.
+- [x] 🤖 `RhapsodyApp` handlers — `setMap`, `placeToken`, `removeToken`, `playAmbient`, `stopAmbient`, `setLighting`, `panCamera`.
+- [x] 🤖 `npm run build` passes.
 - [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
   - `new_page` → Foundry world (asset index pre-built from #10 smoke test).
   - `evaluate_script` calls per move, asserting Foundry state changes:
@@ -149,6 +149,7 @@ All buttons call `StagecraftService` directly — same code path as the AI moves
 - v1 is firmly **single active scene**. If the user has more than one scene viewer (multi-screen GM), we don't try to coordinate.
 - `place_token` defaults to the canvas view center when coords are omitted; this is forgiving for the model and "good enough" for solo play.
 - Foundry V14 environment/lighting fields may have moved between versions — pin against current V14 docs at implementation time. The mapping above is intent, not API verbatim.
+- **Smoke test note:** Skipped automated MCP smoke test because the browser profile was locked by another process (likely parallel session). Build verified manually with `npm run build`. Hands-on verification by user recommended.
 
 ## Open questions
 

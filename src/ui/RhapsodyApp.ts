@@ -41,6 +41,12 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       queryRules: RhapsodyApp.#onQueryRules,
       reindexAssets: RhapsodyApp.#onReindexAssets,
       queryAssets: RhapsodyApp.#onQueryAssets,
+      setMap: RhapsodyApp.#onSetMap,
+      playAudio: RhapsodyApp.#onPlayAudio,
+      stopAudio: RhapsodyApp.#onStopAudio,
+      setLighting: RhapsodyApp.#onSetLighting,
+      panCamera: RhapsodyApp.#onPanCamera,
+      placeToken: RhapsodyApp.#onPlaceToken,
       interruptTts: RhapsodyApp.#onInterruptTts,
       logVoiceTelemetry: RhapsodyApp.#onLogVoiceTelemetry,
       createClock: RhapsodyApp.#onCreateClock,
@@ -195,6 +201,100 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
   static async #onLogVoiceTelemetry(this: RhapsodyApp) {
     const { voiceSession } = await import("../main");
     voiceSession.logCostTelemetry();
+  }
+
+  static async #onSetMap(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const query = root.querySelector<HTMLInputElement>('[name="map-query"]')?.value.trim();
+    if (!query) return;
+    try {
+      const { stagecraft } = await import("../main");
+      await stagecraft.setSceneMap({ query });
+      this.lastPageSuccess = `Scene activated matching "${query}"`;
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onPlayAudio(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const query = root.querySelector<HTMLInputElement>('[name="audio-query"]')?.value.trim();
+    if (!query) return;
+    try {
+      const { stagecraft } = await import("../main");
+      await stagecraft.playAmbient({ query });
+      this.lastPageSuccess = `Playing audio matching "${query}"`;
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onStopAudio(this: RhapsodyApp) {
+    try {
+      const { stagecraft } = await import("../main");
+      await stagecraft.stopAmbient();
+      this.lastPageSuccess = "Stopped all ambient audio";
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onSetLighting(this: RhapsodyApp, _event: Event, target: HTMLElement) {
+    const preset = target.dataset.preset as any;
+    if (!preset) return;
+    try {
+      const { stagecraft } = await import("../main");
+      await stagecraft.setLighting(preset);
+      this.lastPageSuccess = `Lighting set to ${preset}`;
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onPanCamera(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const target = root.querySelector<HTMLInputElement>('[name="camera-target"]')?.value.trim();
+    if (!target) return;
+    try {
+      const { stagecraft } = await import("../main");
+      if (target.includes(",")) {
+        const [x, y] = target.split(",").map(n => parseFloat(n.trim()));
+        await stagecraft.panCamera({ x, y });
+      } else {
+        await stagecraft.panCamera(target);
+      }
+      this.lastPageSuccess = `Panned camera to ${target}`;
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
+  }
+
+  static async #onPlaceToken(this: RhapsodyApp) {
+    // @ts-ignore
+    const root: HTMLElement = this.element;
+    const actor = root.querySelector<HTMLInputElement>('[name="token-actor"]')?.value.trim();
+    const coordsRaw = root.querySelector<HTMLInputElement>('[name="token-coords"]')?.value.trim();
+    if (!actor) return;
+    try {
+      const { stagecraft } = await import("../main");
+      let x, y;
+      if (coordsRaw && coordsRaw.includes(",")) {
+        [x, y] = coordsRaw.split(",").map(n => parseFloat(n.trim()));
+      }
+      await stagecraft.placeToken(actor, x, y);
+      this.lastPageSuccess = `Placed token for ${actor}`;
+    } catch (err) {
+      this.lastPageError = (err as Error).message;
+    }
+    this.render();
   }
 
   static async #onReindexAssets(this: RhapsodyApp) {

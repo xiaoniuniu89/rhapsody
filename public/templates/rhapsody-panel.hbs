@@ -200,6 +200,55 @@
     {{/if}}
   </section>
 
+  <section class="rhapsody-stagecraft-manual">
+    <h3>Stagecraft (Manual)</h3>
+    
+    <div class="stagecraft-group">
+      <h4>Map & Scene</h4>
+      <form class="stagecraft-form" onsubmit="return false;">
+        <input type="text" name="map-query" placeholder="Scene name or description" />
+        <button type="button" data-action="setMap">Activate</button>
+      </form>
+    </div>
+
+    <div class="stagecraft-group">
+      <h4>Audio</h4>
+      <form class="stagecraft-form" onsubmit="return false;">
+        <input type="text" name="audio-query" placeholder="Track name or description" />
+        <button type="button" data-action="playAudio">Play</button>
+        <button type="button" data-action="stopAudio">Stop All</button>
+      </form>
+    </div>
+
+    <div class="stagecraft-group">
+      <h4>Lighting</h4>
+      <div class="lighting-presets">
+        <button type="button" data-action="setLighting" data-preset="day" title="Day (0 darkness, global light)">Day</button>
+        <button type="button" data-action="setLighting" data-preset="dusk" title="Dusk (0.4 darkness, global light)">Dusk</button>
+        <button type="button" data-action="setLighting" data-preset="night" title="Night (0.85 darkness, no global light)">Night</button>
+        <button type="button" data-action="setLighting" data-preset="torchlit" title="Torchlit (0.7 darkness, no global light)">Torch</button>
+        <button type="button" data-action="setLighting" data-preset="dark" title="Pitch Black (1.0 darkness, no global light)">Dark</button>
+      </div>
+    </div>
+
+    <div class="stagecraft-group">
+      <h4>Camera</h4>
+      <form class="stagecraft-form" onsubmit="return false;">
+        <input type="text" name="camera-target" placeholder="Token name or 'x,y'" />
+        <button type="button" data-action="panCamera">Pan</button>
+      </form>
+    </div>
+
+    <div class="stagecraft-group">
+      <h4>Token</h4>
+      <form class="stagecraft-form" onsubmit="return false;">
+        <input type="text" name="token-actor" placeholder="Actor name" />
+        <input type="text" name="token-coords" placeholder="x,y (optional)" style="width: 6em;" />
+        <button type="button" data-action="placeToken">Place</button>
+      </form>
+    </div>
+  </section>
+
   <section class="rhapsody-assets-section">
     <h3>Assets (Stagecraft)</h3>
     <div class="assets-status">

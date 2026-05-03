@@ -35,6 +35,7 @@ export class MoveDispatcher {
     const systemPrompt = [
       "You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player.",
       "\nWorld state mutations (clocks, NPC dispositions) must go through advance_clock, set_clock, shift_disposition. Call read_state first to inspect existing entries so you advance/shift instead of creating duplicates. Do not invent state in narration — use these moves so changes persist.",
+      "\nYou can run the table — switch maps, place tokens, play music, change lighting, and pan the camera using set_scene_map, place_token, play_ambient, set_lighting, pan_camera. When the narrative shifts location or mood, do this as part of the same turn as your narration so the player sees and hears the change. Use natural-language queries (\"tavern interior\", \"tense combat\"); the engine resolves them to specific assets.",
     ];
 
     if (rulesStatus && rulesStatus.chunkCount > 0) {

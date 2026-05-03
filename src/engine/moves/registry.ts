@@ -1,6 +1,5 @@
 // src/engine/moves/registry.ts
 import type { RegisteredMove, MoveSchema } from "./types";
-import type { RhapsodyMode } from "../mode";
 
 export interface OpenAITool {
   type: "function";
@@ -23,14 +22,8 @@ export class MoveRegistry {
     return Array.from(this.moves.values());
   }
 
-  toolSchemas(options?: { mode: RhapsodyMode }): OpenAITool[] {
-    let list = this.list();
-    if (options?.mode) {
-      list = list.filter(
-        (m) => !m.availableIn || m.availableIn.includes(options.mode),
-      );
-    }
-    return list.map((m) => ({
+  toolSchemas(): OpenAITool[] {
+    return this.list().map((m) => ({
       type: "function",
       function: m.schema,
     }));
@@ -40,9 +33,7 @@ export class MoveRegistry {
     return this.moves.get(name) ?? null;
   }
 
-  has(name: string, mode: RhapsodyMode): boolean {
-    const move = this.get(name);
-    if (!move) return false;
-    return !move.availableIn || move.availableIn.includes(mode);
+  has(name: string): boolean {
+    return this.moves.has(name);
   }
 }

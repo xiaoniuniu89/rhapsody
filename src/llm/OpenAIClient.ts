@@ -47,7 +47,7 @@ export class OpenAIClient {
    * Run a chat completion turn.
    * @param options.messages - history including the new user message
    * @param options.tools - optional tool schemas
-   * @param options.model - optional model override (e.g. from mode.ts)
+   * @param options.model - optional model override
    */
   async chat(options: {
     messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[];

@@ -1,5 +1,4 @@
 export type MemoryScope = "bible" | "journal";
-export type RhapsodyMode = "play" | "prep";
 
 export interface PageSummary {
   id: string;

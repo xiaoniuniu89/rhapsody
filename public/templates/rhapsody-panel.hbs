@@ -1,24 +1,22 @@
 <section class="rhapsody-panel">
-  <div class="rhapsody-mode-banner {{mode}}">
-    <div class="mode-label">Mode: <strong>{{mode}}</strong></div>
-    <div class="mode-toggles">
-      <button type="button" data-action="setMode" data-mode="play" class="{{#if isPlay}}active{{/if}}">Play</button>
-      <button type="button" data-action="setMode" data-mode="prep" class="{{#if isPrep}}active{{/if}}">Prep</button>
+  <header class="rhapsody-header">
+    <div class="scene-info">
+      <i class="fa-solid fa-map"></i>
+      <strong>{{#if activeScene}}{{activeScene.name}}{{else}}No active scene{{/if}}</strong>
     </div>
-  </div>
+    <div class="asset-health">
+      <i class="fa-solid fa-database"></i>
+      {{assets.status.maps}} maps · {{assets.status.audio}} audio · {{assets.status.tokens}} tokens
+    </div>
+  </header>
 
-  {{#if isPlay}}
   <section class="rhapsody-voice-section" data-voice-status="{{voice.status}}">
-    <h3>Voice</h3>
     <div class="rhapsody-voice-status">
       <span class="voice-indicator voice-{{voice.status}}"></span>
       <span class="voice-label">{{voice.statusLabel}}</span>
       {{#if voice.speaking}}
         <button type="button" data-action="interruptTts" class="voice-interrupt">Interrupt</button>
       {{/if}}
-      <button type="button" data-action="logVoiceTelemetry" class="voice-telemetry">
-        {{voice.audioSecondsIn}}s in / {{voice.ttsCharsOut}} chars out
-      </button>
     </div>
     <ol class="rhapsody-voice-transcript">
       {{#each voice.transcript}}
@@ -32,379 +30,181 @@
       {{/unless}}
     </ol>
   </section>
-  {{/if}}
 
-  {{#if activeScene}}
-    <section class="rhapsody-contract-section">
-      <h3>Scene Contract: {{activeScene.name}}</h3>
-      
-      <form class="rhapsody-contract-form" onsubmit="return false;">
-        <label>
-          Goal / Question
-          <input type="text" name="contract-question" value="{{contract.question}}" placeholder="e.g. Do they find the secret door?" />
-        </label>
-        
-        <label>
-          On Offer (Clues/Items) - one per line
-          <textarea name="contract-onOffer" rows="3" placeholder="Clue Text">{{#each contract.onOffer}}{{this.text}}&#10;{{/each}}</textarea>
-        </label>
+  <details class="rhapsody-debug-disclosure">
+    <summary>Debug Tools</summary>
 
-        <label>
-          Hidden (Off-limits) - one per line
-          <textarea name="contract-hidden" rows="2" placeholder="Secret Info">{{#each contract.hidden}}{{this}}&#10;{{/each}}</textarea>
-        </label>
-
-        <label>
-          Complications - one per line
-          <textarea name="contract-complications" rows="2" placeholder="Complication Text">{{#each contract.complications}}{{this.text}}&#10;{{/each}}</textarea>
-        </label>
-
-        <label>
-          Exits - one per line
-          <textarea name="contract-exits" rows="2" placeholder="Scene names">{{#each contract.exits}}{{this}}&#10;{{/each}}</textarea>
-        </label>
-
-        <button type="button" data-action="saveContract">Save Contract</button>
+    <section class="rhapsody-debug-section">
+      <h3>Quick Turn</h3>
+      <form class="rhapsody-turn-form" onsubmit="return false;">
+        <textarea name="player-message" rows="2" placeholder="Send a manual turn..."></textarea>
+        <button type="button" data-action="sendTurn">Send Turn</button>
       </form>
 
-      {{#if contract.progress}}
-        <details class="rhapsody-contract-progress">
-          <summary>Progress: {{contract.progress.cluesRevealed.length}} clues, {{contract.progress.complicationsTriggered.length}} complications</summary>
-          <div class="progress-details">
-            {{#if contract.progress.cluesRevealed}}
-              <p><strong>Clues Revealed:</strong> {{#each contract.progress.cluesRevealed}}{{this}} {{/each}}</p>
-            {{/if}}
-            {{#if contract.progress.complicationsTriggered}}
-              <p><strong>Complications:</strong> {{#each contract.progress.complicationsTriggered}}{{this}} {{/each}}</p>
-            {{/if}}
-            {{#if contract.progress.hiddenLeaks}}
-              <p class="leak-warning"><strong>Hidden Leaks!</strong> {{#each contract.progress.hiddenLeaks}}{{this}} {{/each}}</p>
-            {{/if}}
-            {{#if contract.progress.freeform}}
+      {{#if turnResult}}
+        <div class="rhapsody-turn-result">
+          <div class="rhapsody-narration">{{{turnResult.narration}}}</div>
+          {{#if turnResult.movesTaken}}
+            <details class="rhapsody-moves">
+              <summary>Moves taken ({{turnResult.movesTaken.length}})</summary>
               <ul>
-                {{#each contract.progress.freeform}}
-                  <li><em>{{this.type}}</em>: {{this.text}}</li>
+                {{#each turnResult.movesTaken}}
+                  <li class="{{#if this.ok}}ok{{else}}error{{/if}}">
+                    <strong>{{this.name}}</strong>: {{this.log}}
+                    <pre>{{#if this.args}}{{{json this.args}}}{{/if}}</pre>
+                  </li>
                 {{/each}}
               </ul>
-            {{/if}}
-          </div>
-        </details>
+            </details>
+          {{/if}}
+        </div>
       {{/if}}
     </section>
-  {{else}}
-    <p class="rhapsody-info">View a scene to manage its contract.</p>
-  {{/if}}
 
-  <section class="rhapsody-state-section">
-    <h3>World State</h3>
+    <section class="rhapsody-debug-section">
+      <h3>World State</h3>
+      <div class="state-clocks">
+        {{#each state.clocks}}
+          <div class="state-clock">
+            <div class="state-clock-head">
+              <strong>{{this.name}}</strong>
+              <span class="state-clock-count">{{this.filled}}/{{this.segments}}</span>
+            </div>
+            <div class="state-clock-bar">
+              {{#each this.cells}}<span class="cell {{#if this}}filled{{/if}}"></span>{{/each}}
+            </div>
+            <div class="state-clock-actions">
+              <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="-1">−</button>
+              <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="1">+</button>
+              <button type="button" data-action="removeClock" data-clock="{{this.name}}">×</button>
+            </div>
+          </div>
+        {{/each}}
+        <form class="state-clock-form" onsubmit="return false;">
+          <input type="text" name="clock-name" placeholder="New clock..." />
+          <input type="number" name="clock-segments" value="4" style="width: 3em;" />
+          <button type="button" data-action="createClock">Add</button>
+        </form>
+      </div>
 
-    <div class="state-clocks">
-      <h4>Clocks</h4>
-      {{#if state.clocks.length}}
-        <ul class="state-clock-list">
-          {{#each state.clocks}}
-            <li class="state-clock">
-              <div class="state-clock-head">
-                <strong>{{this.name}}</strong>
-                {{#if this.label}}<em>— {{this.label}}</em>{{/if}}
-                <span class="state-clock-count">{{this.filled}}/{{this.segments}}</span>
-              </div>
-              <div class="state-clock-bar" data-filled="{{this.filled}}" data-total="{{this.segments}}">
-                {{#each this.cells}}<span class="cell {{#if this}}filled{{/if}}"></span>{{/each}}
-              </div>
-              <div class="state-clock-actions">
-                <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="-1">−</button>
-                <button type="button" data-action="advanceClock" data-clock="{{this.name}}" data-delta="1">+</button>
-                <button type="button" data-action="removeClock" data-clock="{{this.name}}">×</button>
-              </div>
-            </li>
-          {{/each}}
-        </ul>
-      {{else}}
-        <p class="rhapsody-info">No clocks.</p>
-      {{/if}}
+      <div class="state-dispositions">
+        {{#each state.dispositions}}
+          <div class="state-disp">
+            <strong>{{this.npc}}</strong>
+            <span class="state-disp-scale">
+              {{#each this.cells}}<span class="cell {{#if this.active}}active{{/if}} {{this.tone}}">{{this.label}}</span>{{/each}}
+            </span>
+            <button type="button" data-action="removeDisposition" data-npc="{{this.npc}}">×</button>
+          </div>
+        {{/each}}
+        <form class="state-disp-form" onsubmit="return false;">
+          <input type="text" name="disp-npc" placeholder="NPC name" />
+          <button type="button" data-action="shiftDisposition">Track</button>
+        </form>
+      </div>
+    </section>
 
-      <form class="state-clock-form" onsubmit="return false;">
-        <input type="text" name="clock-name" placeholder="Clock name" />
-        <input type="number" name="clock-segments" min="1" value="4" style="width: 4em;" />
-        <input type="text" name="clock-label" placeholder="Label (optional)" />
-        <button type="button" data-action="createClock">Create</button>
+    <section class="rhapsody-debug-section">
+      <h3>Memory</h3>
+      <form class="rhapsody-memory-write-form" onsubmit="return false;">
+        <select name="write-scope">
+          <option value="bible">Bible</option>
+          <option value="journal">Journal</option>
+        </select>
+        <input type="text" name="write-name" placeholder="Page name" />
+        <textarea name="write-public" rows="2" placeholder="Public content"></textarea>
+        <textarea name="write-private" rows="2" placeholder="Private content (Bible only)"></textarea>
+        <button type="button" data-action="writePage">Write</button>
       </form>
-    </div>
 
-    <div class="state-dispositions">
-      <h4>Dispositions</h4>
-      {{#if state.dispositions.length}}
-        <ul class="state-disp-list">
-          {{#each state.dispositions}}
-            <li class="state-disp">
-              <strong>{{this.npc}}</strong>
-              <span class="state-disp-scale">
-                {{#each this.cells}}<span class="cell {{#if this.active}}active{{/if}} {{this.tone}}">{{this.label}}</span>{{/each}}
-              </span>
-              <span class="state-disp-value">{{this.value}}</span>
-              <button type="button" data-action="removeDisposition" data-npc="{{this.npc}}">×</button>
-            </li>
-          {{/each}}
-        </ul>
-      {{else}}
-        <p class="rhapsody-info">No dispositions tracked.</p>
-      {{/if}}
-
-      <form class="state-disp-form" onsubmit="return false;">
-        <input type="text" name="disp-npc" placeholder="NPC name" />
-        <input type="number" name="disp-delta" value="1" style="width: 4em;" />
-        <input type="text" name="disp-reason" placeholder="Reason (optional)" />
-        <button type="button" data-action="shiftDisposition">Shift</button>
+      <form class="rhapsody-memory-form" onsubmit="return false;">
+        <select name="memory-scope">
+          <option value="bible">Bible</option>
+          <option value="journal">Journal</option>
+        </select>
+        <input type="text" name="memory-name" placeholder="Read page..." />
+        <button type="button" data-action="readPage">Read</button>
       </form>
-    </div>
-  </section>
 
-  <section class="rhapsody-rules-section">
-    <h3>Rules (RAG)</h3>
-    
-    <div class="rules-packs">
-      <p>Source Compendia:</p>
+      {{#if lastPage}}
+        <div class="rhapsody-page">
+          <strong>{{lastPage.name}}</strong>
+          <div class="page-public">{{{lastPage.public}}}</div>
+          {{#if lastPage.private}}
+            <div class="page-private"><em>{{lastPage.private}}</em></div>
+          {{/if}}
+        </div>
+      {{/if}}
+    </section>
+
+    <section class="rhapsody-debug-section">
+      <h3>Scene Contract</h3>
+      {{#if activeScene}}
+        <form class="rhapsody-contract-form" onsubmit="return false;">
+          <input type="text" name="contract-question" value="{{contract.question}}" placeholder="Goal/Question" />
+          <textarea name="contract-onOffer" rows="2" placeholder="On Offer (one per line)">{{#each contract.onOffer}}{{this.text}}&#10;{{/each}}</textarea>
+          <textarea name="contract-hidden" rows="2" placeholder="Hidden (one per line)">{{#each contract.hidden}}{{this}}&#10;{{/each}}</textarea>
+          <button type="button" data-action="saveContract">Save</button>
+        </form>
+      {{else}}
+        <p>No active scene.</p>
+      {{/if}}
+    </section>
+
+    <section class="rhapsody-debug-section">
+      <h3>Rules RAG</h3>
       <div class="rules-pack-list">
         {{#each rules.allPacks}}
-          <label>
-            <input type="checkbox" name="rules-pack" value="{{this.id}}" {{#if this.selected}}checked{{/if}}>
-            {{this.label}} <small>({{this.id}})</small>
-          </label>
+          <label><input type="checkbox" name="rules-pack" value="{{this.id}}" {{#if this.selected}}checked{{/if}}> {{this.label}}</label>
         {{/each}}
       </div>
       <button type="button" data-action="saveRulesSettings">Save Packs</button>
-    </div>
-
-    <div class="rules-status">
-      {{#if rules.status}}
-        <p>Index: {{rules.status.chunkCount}} chunks from {{rules.status.packs.length}} packs.</p>
-      {{else}}
-        <p>No index built.</p>
-      {{/if}}
+      <button type="button" data-action="reindexRules">Reindex</button>
       
-      <button type="button" data-action="reindexRules" {{#if rules.reindexProgress}}disabled{{/if}}>
-        {{#if rules.reindexProgress}}Indexing...{{else}}Reindex{{/if}}
-      </button>
-      {{#if rules.reindexProgress}}
-        <p class="progress-text">{{rules.reindexProgress}}</p>
-      {{/if}}
-    </div>
-
-    <form class="rules-query-form" onsubmit="return false;">
-      <textarea name="rules-query" rows="2" placeholder="Ask a rules question..."></textarea>
-      <button type="button" data-action="queryRules">Query</button>
-    </form>
-
-    {{#if rules.queryResults}}
-      <div class="rules-results">
-        {{#each rules.queryResults}}
-          <div class="rules-hit">
-            <div class="rules-citation">{{{this.citation}}} ({{this.similarity}}%)</div>
-            <div class="rules-excerpt">{{this.excerpt}}</div>
-          </div>
-        {{/each}}
-      </div>
-    {{/if}}
-  </section>
-
-  <section class="rhapsody-stagecraft-manual">
-    <h3>Stagecraft (Manual)</h3>
-    
-    <div class="stagecraft-group">
-      <h4>Map & Scene</h4>
-      <form class="stagecraft-form" onsubmit="return false;">
-        <input type="text" name="map-query" placeholder="Scene name or description" />
-        <button type="button" data-action="setMap">Activate</button>
+      <form class="rules-query-form" onsubmit="return false;">
+        <input type="text" name="rules-query" placeholder="Ask a rules question..." />
+        <button type="button" data-action="queryRules">Query</button>
       </form>
-    </div>
+      {{#if rules.queryResults}}
+        <div class="rules-results">
+          {{#each rules.queryResults}}{{{this.citation}}} ({{this.similarity}}%) {{/each}}
+        </div>
+      {{/if}}
+    </section>
 
-    <div class="stagecraft-group">
-      <h4>Audio</h4>
-      <form class="stagecraft-form" onsubmit="return false;">
-        <input type="text" name="audio-query" placeholder="Track name or description" />
+    <section class="rhapsody-debug-section">
+      <h3>Stagecraft Manual</h3>
+      <div class="stagecraft-form">
+        <input type="text" name="map-query" placeholder="Map query" />
+        <button type="button" data-action="setMap">Map</button>
+      </div>
+      <div class="stagecraft-form">
+        <input type="text" name="audio-query" placeholder="Audio query" />
         <button type="button" data-action="playAudio">Play</button>
-        <button type="button" data-action="stopAudio">Stop All</button>
-      </form>
-    </div>
-
-    <div class="stagecraft-group">
-      <h4>Lighting</h4>
+        <button type="button" data-action="stopAudio">Stop</button>
+      </div>
       <div class="lighting-presets">
-        <button type="button" data-action="setLighting" data-preset="day" title="Day (0 darkness, global light)">Day</button>
-        <button type="button" data-action="setLighting" data-preset="dusk" title="Dusk (0.4 darkness, global light)">Dusk</button>
-        <button type="button" data-action="setLighting" data-preset="night" title="Night (0.85 darkness, no global light)">Night</button>
-        <button type="button" data-action="setLighting" data-preset="torchlit" title="Torchlit (0.7 darkness, no global light)">Torch</button>
-        <button type="button" data-action="setLighting" data-preset="dark" title="Pitch Black (1.0 darkness, no global light)">Dark</button>
+        <button type="button" data-action="setLighting" data-preset="day">Day</button>
+        <button type="button" data-action="setLighting" data-preset="night">Night</button>
       </div>
-    </div>
+    </section>
 
-    <div class="stagecraft-group">
-      <h4>Camera</h4>
-      <form class="stagecraft-form" onsubmit="return false;">
-        <input type="text" name="camera-target" placeholder="Token name or 'x,y'" />
-        <button type="button" data-action="panCamera">Pan</button>
+    <section class="rhapsody-debug-section">
+      <h3>Assets Index</h3>
+      <button type="button" data-action="reindexAssets">Reindex Assets</button>
+      <form class="assets-query-form" onsubmit="return false;">
+        <input type="text" name="assets-query" placeholder="Search..." />
+        <button type="button" data-action="queryAssets">Test</button>
       </form>
-    </div>
+    </section>
 
-    <div class="stagecraft-group">
-      <h4>Token</h4>
-      <form class="stagecraft-form" onsubmit="return false;">
-        <input type="text" name="token-actor" placeholder="Actor name" />
-        <input type="text" name="token-coords" placeholder="x,y (optional)" style="width: 6em;" />
-        <button type="button" data-action="placeToken">Place</button>
-      </form>
-    </div>
-  </section>
+    <section class="rhapsody-debug-section">
+      <h3>System</h3>
+      <button type="button" data-action="testConnection">Test OpenAI</button>
+      {{#if lastResponse}}<pre>{{lastResponse}}</pre>{{/if}}
+    </section>
 
-  <section class="rhapsody-assets-section">
-    <h3>Assets (Stagecraft)</h3>
-    <div class="assets-status">
-      {{#if assets.status.builtAt}}
-        <p>Indexed: {{assets.status.maps}} maps, {{assets.status.audio}} audio, {{assets.status.tokens}} tokens.</p>
-        <p><small>Built: {{assets.builtAtDate}}</small></p>
-      {{else}}
-        <p>No index built.</p>
-      {{/if}}
-      
-      <button type="button" data-action="reindexAssets" {{#if assets.reindexing}}disabled{{/if}}>
-        {{#if assets.reindexing}}Indexing...{{else}}Reindex Assets{{/if}}
-      </button>
-    </div>
-
-    <form class="assets-query-form" onsubmit="return false;">
-      <input type="text" name="assets-query" placeholder="Test query (e.g. tavern)" />
-      <select name="assets-kind">
-        <option value="map">Map</option>
-        <option value="audio">Audio</option>
-        <option value="token">Token</option>
-      </select>
-      <button type="button" data-action="queryAssets">Test</button>
-    </form>
-
-    {{#if assets.queryResults}}
-      <div class="assets-results">
-        {{#each assets.queryResults}}
-          <div class="assets-hit">
-            <strong>{{this.item.name}}</strong> ({{this.score}})
-            <div class="assets-path"><small>{{this.item.path}}</small></div>
-          </div>
-        {{/each}}
-      </div>
-    {{/if}}
-  </section>
-
-  <button type="button" data-action="testConnection">Test connection</button>
-  {{#if lastResponse}}
-    <pre class="rhapsody-response">{{lastResponse}}</pre>
-  {{/if}}
-
-  <form class="rhapsody-turn-form" onsubmit="return false;">
-    <h3>Send turn</h3>
-    <label>
-      What do you do?
-      <textarea name="player-message" rows="3" placeholder="I search the library for clues about the cult."></textarea>
-    </label>
-    <button type="button" data-action="sendTurn">Send Turn</button>
-  </form>
-
-  {{#if turnResult}}
-    <div class="rhapsody-turn-result">
-      <h4>GM Narration</h4>
-      <div class="rhapsody-narration">{{{turnResult.narration}}}</div>
-
-      {{#if turnResult.movesTaken}}
-        <details class="rhapsody-moves">
-          <summary>Moves taken ({{turnResult.movesTaken.length}})</summary>
-          <ul>
-            {{#each turnResult.movesTaken}}
-              <li class="{{#if this.ok}}ok{{else}}error{{/if}}">
-                <strong>{{this.name}}</strong>: {{this.log}}
-                <pre>{{#if this.args}}{{{json this.args}}}{{/if}}</pre>
-              </li>
-            {{/each}}
-          </ul>
-        </details>
-      {{/if}}
-    </div>
-  {{/if}}
-
-  <form class="rhapsody-memory-form" onsubmit="return false;">
-    <h3>Memory read</h3>
-    <label>
-      Scope
-      <select name="memory-scope">
-        <option value="bible">Bible (private)</option>
-        <option value="journal">Journal (public)</option>
-      </select>
-    </label>
-    <label>
-      Page name
-      <input type="text" name="memory-name" placeholder="e.g. Lord Vance" />
-    </label>
-    <button type="button" data-action="readPage">Read</button>
-  </form>
-
-  {{#if isPrep}}
-  <form class="rhapsody-memory-write-form" onsubmit="return false;">
-    <h3>Memory write</h3>
-    <label>
-      Scope
-      <select name="write-scope">
-        <option value="bible">Bible</option>
-        <option value="journal">Journal</option>
-      </select>
-    </label>
-    <label>
-      Page name
-      <input type="text" name="write-name" placeholder="e.g. The Black Library" />
-    </label>
-    <label>
-      Public content (HTML)
-      <textarea name="write-public" rows="3"></textarea>
-    </label>
-    <label class="private-only">
-      Private content (HTML, Bible only)
-      <textarea name="write-private" rows="3"></textarea>
-    </label>
-    <button type="button" data-action="writePage">Write / Create</button>
-  </form>
-
-  <form class="rhapsody-memory-append-form" onsubmit="return false;">
-    <h3>Quick append</h3>
-    <label>
-      Target page
-      <input type="text" name="append-name" value="Session Log" />
-    </label>
-    <label>
-      HTML to append
-      <textarea name="append-html" rows="2" placeholder="What just happened?"></textarea>
-    </label>
-    <button type="button" data-action="appendJournal">Append to Journal</button>
-  </form>
-  {{/if}}
-
-  {{#if lastPageError}}
-    <p class="rhapsody-error">{{lastPageError}}</p>
-  {{/if}}
-
-  {{#if lastPageSuccess}}
-    <p class="rhapsody-success">{{lastPageSuccess}}</p>
-  {{/if}}
-
-  {{#if lastPage}}
-    <div class="rhapsody-page">
-      <h3>{{lastPage.name}}</h3>
-      <section class="rhapsody-page-public">
-        <h4>Public</h4>
-        <div>{{{lastPage.public}}}</div>
-      </section>
-      {{#if lastPage.private}}
-        <section class="rhapsody-page-private">
-          <h4>Private (GM only)</h4>
-          <div>{{{lastPage.private}}}</div>
-        </section>
-      {{/if}}
-    </div>
-  {{/if}}
+    {{#if lastPageError}}<p class="rhapsody-error">{{lastPageError}}</p>{{/if}}
+    {{#if lastPageSuccess}}<p class="rhapsody-success">{{lastPageSuccess}}</p>{{/if}}
+  </details>
 </section>

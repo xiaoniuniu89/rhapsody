@@ -97,7 +97,6 @@ export function registerMemoryMoves(
         return { ok: false, log: (err as Error).message };
       }
     },
-    availableIn: ["prep"],
   });
 
   registry.register({
@@ -126,6 +125,5 @@ export function registerMemoryMoves(
         return { ok: false, log: (err as Error).message };
       }
     },
-    availableIn: ["prep"],
   });
 }

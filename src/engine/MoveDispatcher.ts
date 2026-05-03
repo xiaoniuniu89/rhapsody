@@ -3,7 +3,7 @@ import type { MoveRegistry } from "./moves/registry";
 import type { OpenAIClient } from "../llm/OpenAIClient";
 import type { SceneContractService } from "./contract/SceneContractService";
 import type { RulesIndexService } from "./rules/RulesIndexService";
-import { getMode, getPlayModel, getPrepModel } from "./mode";
+import { id as moduleId } from "../../module.json";
 import type OpenAI from "openai";
 
 export interface TurnResult {
@@ -30,35 +30,17 @@ export class MoveDispatcher {
   }
 
   async runTurn(playerMessage: string): Promise<TurnResult> {
-    const mode = getMode();
-    const model = mode === "prep" ? getPrepModel() : getPlayModel();
+    // @ts-ignore
+    const model = game.settings.get(moduleId, "openaiModel") as string;
     const activeContract = this.contractService.active();
     const rulesStatus = this.rulesIndex.status();
 
     const systemPrompt = [
       "You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player.",
-    ];
-
-    if (mode === "play") {
-      systemPrompt.push(
-        "\n### PLAY MODE RULES",
-        "- You are reactive. Focus on the immediate scene and player actions.",
-        "- Do NOT invent major world facts or secrets. If a fact is missing, use `roll_oracle` or ask the player.",
-        "- You cannot write to the permanent 'bible' memory (moves like write_page are disabled).",
-      );
-    } else {
-      systemPrompt.push(
-        "\n### PREP MODE RULES",
-        "- You are an authorial assistant helping design the world.",
-        "- Propose lore, create bible pages, and organize the campaign.",
-        "- You have full access to world secrets and are encouraged to commit changes to the 'bible'.",
-      );
-    }
-
-    systemPrompt.push(
+      "\nYou have full access to world secrets and are encouraged to commit changes to the 'bible' (using write_page and append_page) to maintain a consistent world record.",
       "\nWorld state mutations (clocks, NPC dispositions) must go through advance_clock, set_clock, shift_disposition. Call read_state first to inspect existing entries so you advance/shift instead of creating duplicates. Do not invent state in narration — use these moves so changes persist.",
       "\nYou can run the table — switch maps, place tokens, play music, change lighting, and pan the camera using set_scene_map, place_token, play_ambient, set_lighting, pan_camera. When the narrative shifts location or mood, do this as part of the same turn as your narration so the player sees and hears the change. Use natural-language queries (\"tavern interior\", \"tense combat\"); the engine resolves them to specific assets.",
-    );
+    ];
 
     if (rulesStatus && rulesStatus.chunkCount > 0) {
       systemPrompt.push(
@@ -95,7 +77,7 @@ export class MoveDispatcher {
       { role: "user", content: playerMessage },
     ];
 
-    const tools = this.registry.toolSchemas({ mode });
+    const tools = this.registry.toolSchemas();
     const movesTaken: TurnResult["movesTaken"] = [];
     let narration = "";
     const MAX_STEPS = 4;
@@ -169,9 +151,9 @@ export class MoveDispatcher {
           let ok = false;
           let log = "";
 
-          if (!this.registry.has(functionName, mode)) {
+          if (!this.registry.has(functionName)) {
             ok = false;
-            log = `mode_disallowed: ${functionName} not available in ${mode}`;
+            log = `Unknown move: ${functionName}`;
             resultData = { error: log };
             movesTaken.push({ name: functionName, args: {}, log, ok });
           } else {
@@ -190,11 +172,6 @@ export class MoveDispatcher {
                 resultData = { error: log };
                 movesTaken.push({ name: functionName, args: {}, log, ok });
               }
-            } else {
-              ok = false;
-              log = `Unknown move: ${functionName}`;
-              resultData = { error: log };
-              movesTaken.push({ name: functionName, args: {}, log, ok });
             }
           }
 

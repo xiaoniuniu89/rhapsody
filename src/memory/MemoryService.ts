@@ -1,9 +1,7 @@
-import { id as moduleId } from "../../module.json";
 import type {
   MemoryScope,
   PageContent,
   PageSummary,
-  RhapsodyMode,
 } from "./types";
 
 const BIBLE_FOLDER_NAME = "Rhapsody Bible";
@@ -16,11 +14,6 @@ export class MemoryService {
   async init(): Promise<void> {
     this.bibleFolder = await this.findOrCreateFolder(BIBLE_FOLDER_NAME);
     this.journalFolder = await this.findOrCreateFolder(JOURNAL_FOLDER_NAME);
-  }
-
-  getMode(): RhapsodyMode {
-    // @ts-ignore — foundry global
-    return game.settings.get(moduleId, "rhapsodyMode") as RhapsodyMode;
   }
 
   get folderIds(): { bible: string | null; journal: string | null } {
@@ -57,7 +50,7 @@ export class MemoryService {
     const publicHtml = publicPage?.text?.content ?? "";
 
     let privateHtml: string | null = null;
-    if (scope === "bible" && this.getMode() === "prep") {
+    if (scope === "bible") {
       const privatePage = this.findSubPage(entry, "Private");
       privateHtml = privatePage?.text?.content ?? null;
     }

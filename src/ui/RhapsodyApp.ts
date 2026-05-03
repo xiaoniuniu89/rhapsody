@@ -2,7 +2,6 @@ import type { PageContent } from "../memory/types";
 import type { TurnResult } from "../engine/MoveDispatcher";
 import type { VoiceSession } from "../voice/VoiceSession";
 import { id as moduleId } from "../../module.json";
-import { getMode, type RhapsodyMode } from "../engine/mode";
 
 // @ts-ignore — foundry global
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -31,7 +30,6 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
     },
     position: { width: 600, height: 700 },
     actions: {
-      setMode: RhapsodyApp.#onSetMode,
       testConnection: RhapsodyApp.#onTestConnection,
       readPage: RhapsodyApp.#onReadPage,
       writePage: RhapsodyApp.#onWritePage,
@@ -50,7 +48,6 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       panCamera: RhapsodyApp.#onPanCamera,
       placeToken: RhapsodyApp.#onPlaceToken,
       interruptTts: RhapsodyApp.#onInterruptTts,
-      logVoiceTelemetry: RhapsodyApp.#onLogVoiceTelemetry,
       createClock: RhapsodyApp.#onCreateClock,
       advanceClock: RhapsodyApp.#onAdvanceClock,
       removeClock: RhapsodyApp.#onRemoveClock,
@@ -67,10 +64,6 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
 
   // @ts-ignore — AppV2 hook signature
   async _prepareContext() {
-    const mode = getMode();
-    const isPlay = mode === "play";
-    const isPrep = mode === "prep";
-
     // @ts-ignore
     const activeScene = game.scenes.viewed;
     let contractData = null;
@@ -171,9 +164,6 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
       lastPageError: this.lastPageError,
       lastPageSuccess: this.lastPageSuccess,
       turnResult: this.turnResult,
-      mode,
-      isPlay,
-      isPrep,
       activeScene,
       contract: contractData,
       rules: {
@@ -193,27 +183,10 @@ export default class RhapsodyApp extends HandlebarsApplicationMixin(
     };
   }
 
-  static async #onSetMode(this: RhapsodyApp, _event: Event, target: HTMLElement) {
-    const mode = target.dataset.mode as RhapsodyMode;
-    if (!mode) return;
-    try {
-      // @ts-ignore
-      await game.settings.set(moduleId, "rhapsodyMode", mode);
-      this.render();
-    } catch (err) {
-      console.error("🎵 Rhapsody: Error setting mode", err);
-    }
-  }
-
   static async #onInterruptTts(this: RhapsodyApp) {
     const { voiceSession } = await import("../main");
     voiceSession.interrupt();
     this.render();
-  }
-
-  static async #onLogVoiceTelemetry(this: RhapsodyApp) {
-    const { voiceSession } = await import("../main");
-    voiceSession.logCostTelemetry();
   }
 
   static async #onSetMap(this: RhapsodyApp) {

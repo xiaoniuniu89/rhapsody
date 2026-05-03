@@ -1,9 +1,11 @@
 # #9 Prep vs Play modes (v1, re-scoped 2026-05-02)
 
-**Status:** completed
+**Status:** superseded by #16
 **Last touched:** 2026-05-03 (gemini-cli)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/9
 **Assignee:** gemini-cli
+
+> **Note:** This mode gating was removed in #16 to favor a voice-first, zero-friction AI GM that writes memory continuously.
 
 ## Spec
 

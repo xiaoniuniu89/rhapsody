@@ -132,7 +132,7 @@ All buttons call `StagecraftService` directly — same code path as the AI moves
 - [x] 🤖 Panel CSS in `src/styles/rhapsody.css`.
 - [x] 🤖 `RhapsodyApp` handlers — `setMap`, `placeToken`, `removeToken`, `playAmbient`, `stopAmbient`, `setLighting`, `panCamera`.
 - [x] 🤖 `npm run build` passes.
-- [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
+- [x] 🧠 Smoke test via `chrome-devtools-mcp`:
   - `new_page` → Foundry world (asset index pre-built from #10 smoke test).
   - `evaluate_script` calls per move, asserting Foundry state changes:
     - `stagecraft.setSceneMap({ query: "tavern" })` → `game.scenes.viewed.name` matches a tavern asset.
@@ -148,8 +148,9 @@ All buttons call `StagecraftService` directly — same code path as the AI moves
 
 - v1 is firmly **single active scene**. If the user has more than one scene viewer (multi-screen GM), we don't try to coordinate.
 - `place_token` defaults to the canvas view center when coords are omitted; this is forgiving for the model and "good enough" for solo play.
+- 2026-05-03: MCP smoke test completed (gemini-cli). Verified all 7 stagecraft moves (manual and AI-driven). End-to-end AI turn successfully triggered multiple moves in a single turn. Failure paths correctly return `ok: false`. Screenshots captured.
 - Foundry V14 environment/lighting fields may have moved between versions — pin against current V14 docs at implementation time. The mapping above is intent, not API verbatim.
-- **Smoke test note:** Skipped automated MCP smoke test because the browser profile was locked by another process (likely parallel session). Build verified manually with `npm run build`. Hands-on verification by user recommended.
+- **Smoke test note:** Skipped automated MCP smoke test because the browser profile was locked by another process (likely parallel session). Build verified manually with `npm run build`. Hands-on verification by user recommended. (Update: Re-run successful in separate session).
 
 ## Open questions
 

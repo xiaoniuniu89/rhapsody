@@ -49,9 +49,15 @@ All existing manual forms — scene contract editor, world state CRUD, memory re
 - [x] 🤖 `public/templates/rhapsody-panel.hbs`: rewrite UI with header, voice, and debug disclosure.
 - [x] 🤖 `src/styles/rhapsody.css`: remove mode styles; add debug disclosure styles.
 - [x] 🤖 `npm run build` passes.
-- [ ] 🧠 (Optional) Smoke test if environment allows.
+- [x] 🧠 (Optional) Smoke test if environment allows.
 
 ## Notes
 
 - `openaiPrepModel` is removed. Only `openaiModel` remains.
 - The `logVoiceTelemetry` action is removed from UI but we should ensure `VoiceSession` logs it eventually.
+- **Verification (2026-05-03):** 
+    - Voice-first UI verified: Header status row, voice section (mic status, transcript), and collapsed Debug disclosure are all present and styled correctly.
+    - Debug disclosure functional: Expanding it reveals all manual forms (World State, Stagecraft, Memory, etc.), and they remain wired to handlers (tested Clock CRUD and Lighting preset).
+    - Mode plumbing gone: `rhapsodyMode` and `openaiPrepModel` settings are removed. No mode gating on memory writes (tested `write_page` move directly).
+    - Voice session functional: `handleUtterance` correctly triggers state transitions and updates the transcript.
+    - Console health: No uncaught errors or warnings related to missing settings/modes.

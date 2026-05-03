@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #11 — Model strategy (note: `openaiPrepModel` removed in #16).
-**Up next:** #4 — Wiki memory (improvements).
+**Active:** #17 — Listening modes (Mute / Passive / Active + ambient GM context).
+**Up next:** #11 — Model strategy (note: `openaiPrepModel` removed in #16; only `openaiModel` remains plus new cheap-model setting from #17).
 
 ## Workflow (read first when starting a session)
 

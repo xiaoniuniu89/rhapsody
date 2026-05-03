@@ -1,7 +1,7 @@
 # Current work
 
-**Active:** #14 — Voice I/O (PTT + STT + TTS).
-**Up next:** #10 — Asset indexing → #15 — Stagecraft moves → #9 — Prep vs Play (re-scoped) → #11 — Model strategy.
+**Active:** #15 — Stagecraft moves.
+**Up next:** #9 — Prep vs Play (re-scoped) → #11 — Model strategy.
 
 ## Workflow (read first when starting a session)
 
@@ -17,6 +17,7 @@ Both Claude Code and Gemini CLI use the same convention. Files + git are the onl
 
 ## Recent
 
+- 2026-05-02: completed #10 asset indexing (gemini-cli). AssetIndexService walks Scenes (maps), Playlists (audio), and Actors (tokens) including compendia. Heuristic tag extraction + fuzzy search. Panel UI with status and test query. Fixed #14 VoiceSession build error (erasableSyntaxOnly) to unblock. Verified in Foundry with browser automation.
 - 2026-05-02: north-star pivot. Vision is **voice-first, zero-friction, GM runs Foundry stagecraft**. Rewrote epic #1, opened #14 (Voice I/O, PTT + STT + TTS) and #15 (stagecraft moves), re-scoped #10 from \"Foundry documents as bible\" (now covered by #4/#5/#8) to \"asset indexing for stagecraft\". Re-scoped #9 (Play surface is voice, not panel). Vision saved to memory.
 - 2026-05-02: completed #8 world-state v1 (clocks + dispositions). End-to-end verified in Foundry: panel CRUD, AI moves (`read_state` → `advance_clock` → `shift_disposition`), ±3 clamping, persistence across reload. Bug fix: Vite dev `?t=` cache-bust split RhapsodyApp's dynamic import from Foundry's static load into two `WorldStateService` singletons; service now reloads from setting on every read/write so any instance is always in sync.
 - 2026-04-28: completed #7 Rules RAG (gemini-cli). Chunker + Embedder + Indexer + query_rules move. Index persisted in hidden JournalEntry. UI section for pack selection, reindexing, and manual query with citations.

@@ -14,8 +14,8 @@ export interface MoveSchema {
 
 export interface MoveResult {
   ok: boolean;
-  data?: unknown;   // returned to the model as tool result content
-  log: string;      // human-readable line for the "Moves taken" panel
+  data?: unknown; // returned to the model as tool result content
+  log: string; // human-readable line for the "Moves taken" panel
 }
 
 export interface MoveContext {
@@ -26,7 +26,10 @@ export interface MoveContext {
   };
 }
 
-export type MoveHandler = (args: any, context: MoveContext) => Promise<MoveResult>;
+export type MoveHandler = (
+  args: any,
+  context: MoveContext,
+) => Promise<MoveResult>;
 
 export interface RegisteredMove {
   schema: MoveSchema;

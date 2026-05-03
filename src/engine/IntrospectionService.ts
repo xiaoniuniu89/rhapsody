@@ -39,9 +39,7 @@ export class IntrospectionService {
     const actorTypes = Object.keys(model.Actor ?? {}).filter(
       (t) => t !== "base",
     );
-    const itemTypes = Object.keys(model.Item ?? {}).filter(
-      (t) => t !== "base",
-    );
+    const itemTypes = Object.keys(model.Item ?? {}).filter((t) => t !== "base");
 
     // @ts-ignore
     const packs: PackSummary[] = [...game.packs.values()].map((p: any) => ({

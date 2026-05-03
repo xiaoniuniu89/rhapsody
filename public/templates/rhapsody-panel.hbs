@@ -1,6 +1,31 @@
 <section class="rhapsody-panel">
   <div class="rhapsody-mode">Mode: <strong>{{mode}}</strong></div>
 
+  <section class="rhapsody-voice-section" data-voice-status="{{voice.status}}">
+    <h3>Voice</h3>
+    <div class="rhapsody-voice-status">
+      <span class="voice-indicator voice-{{voice.status}}"></span>
+      <span class="voice-label">{{voice.statusLabel}}</span>
+      {{#if voice.speaking}}
+        <button type="button" data-action="interruptTts" class="voice-interrupt">Interrupt</button>
+      {{/if}}
+      <button type="button" data-action="logVoiceTelemetry" class="voice-telemetry">
+        {{voice.audioSecondsIn}}s in / {{voice.ttsCharsOut}} chars out
+      </button>
+    </div>
+    <ol class="rhapsody-voice-transcript">
+      {{#each voice.transcript}}
+        <li class="voice-line voice-{{this.role}}">
+          <span class="voice-role">{{this.role}}</span>
+          <span class="voice-text">{{this.text}}</span>
+        </li>
+      {{/each}}
+      {{#unless voice.transcript.length}}
+        <li class="voice-line voice-empty"><em>No utterances yet. Hold the bound key (default <code>`</code>) to talk.</em></li>
+      {{/unless}}
+    </ol>
+  </section>
+
   {{#if activeScene}}
     <section class="rhapsody-contract-section">
       <h3>Scene Contract: {{activeScene.name}}</h3>
@@ -169,6 +194,43 @@
           <div class="rules-hit">
             <div class="rules-citation">{{{this.citation}}} ({{this.similarity}}%)</div>
             <div class="rules-excerpt">{{this.excerpt}}</div>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
+  </section>
+
+  <section class="rhapsody-assets-section">
+    <h3>Assets (Stagecraft)</h3>
+    <div class="assets-status">
+      {{#if assets.status.builtAt}}
+        <p>Indexed: {{assets.status.maps}} maps, {{assets.status.audio}} audio, {{assets.status.tokens}} tokens.</p>
+        <p><small>Built: {{assets.builtAtDate}}</small></p>
+      {{else}}
+        <p>No index built.</p>
+      {{/if}}
+      
+      <button type="button" data-action="reindexAssets" {{#if assets.reindexing}}disabled{{/if}}>
+        {{#if assets.reindexing}}Indexing...{{else}}Reindex Assets{{/if}}
+      </button>
+    </div>
+
+    <form class="assets-query-form" onsubmit="return false;">
+      <input type="text" name="assets-query" placeholder="Test query (e.g. tavern)" />
+      <select name="assets-kind">
+        <option value="map">Map</option>
+        <option value="audio">Audio</option>
+        <option value="token">Token</option>
+      </select>
+      <button type="button" data-action="queryAssets">Test</button>
+    </form>
+
+    {{#if assets.queryResults}}
+      <div class="assets-results">
+        {{#each assets.queryResults}}
+          <div class="assets-hit">
+            <strong>{{this.item.name}}</strong> ({{this.score}})
+            <div class="assets-path"><small>{{this.item.path}}</small></div>
           </div>
         {{/each}}
       </div>

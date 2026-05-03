@@ -11,7 +11,9 @@ export class MoveRegistry {
 
   register(move: RegisteredMove): void {
     if (this.moves.has(move.schema.name)) {
-      console.warn(`🎵 Rhapsody: Move ${move.schema.name} already registered, overwriting.`);
+      console.warn(
+        `🎵 Rhapsody: Move ${move.schema.name} already registered, overwriting.`,
+      );
     }
     this.moves.set(move.schema.name, move);
   }
@@ -21,9 +23,9 @@ export class MoveRegistry {
   }
 
   toolSchemas(): OpenAITool[] {
-    return this.list().map(m => ({
+    return this.list().map((m) => ({
       type: "function",
-      function: m.schema
+      function: m.schema,
     }));
   }
 

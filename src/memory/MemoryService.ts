@@ -124,7 +124,8 @@ export class MemoryService {
     return {
       id: entry.id,
       name: entry.name,
-      hasPrivate: content.private != null || this.findSubPage(entry, "Private") != null,
+      hasPrivate:
+        content.private != null || this.findSubPage(entry, "Private") != null,
     };
   }
 

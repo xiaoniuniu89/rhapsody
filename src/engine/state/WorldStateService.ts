@@ -25,7 +25,9 @@ export class WorldStateService {
 
   private reload(): void {
     // @ts-ignore — foundry global
-    const raw = game.settings.get(moduleId, SETTING_KEY) as Partial<WorldState> | undefined;
+    const raw = game.settings.get(moduleId, SETTING_KEY) as
+      | Partial<WorldState>
+      | undefined;
     if (raw && (raw as any).version === 1) {
       this.state = {
         version: 1,
@@ -37,7 +39,11 @@ export class WorldStateService {
     }
   }
 
-  async setClock(name: string, segments: number, label?: string): Promise<Clock> {
+  async setClock(
+    name: string,
+    segments: number,
+    label?: string,
+  ): Promise<Clock> {
     this.reload();
     const key = name.trim();
     if (!key) throw new Error("Clock name required");
@@ -98,7 +104,7 @@ export class WorldStateService {
     const key = npc.trim();
     if (!key) throw new Error("NPC name required");
     const existingKey = Object.keys(this.state.dispositions).find(
-      k => k.toLowerCase() === key.toLowerCase(),
+      (k) => k.toLowerCase() === key.toLowerCase(),
     );
     const canonicalKey = existingKey ?? key;
     let disp = this.state.dispositions[canonicalKey];
@@ -107,7 +113,10 @@ export class WorldStateService {
       this.state.dispositions[canonicalKey] = disp;
     }
     const d = Math.floor(delta);
-    disp.value = Math.max(DISPOSITION_MIN, Math.min(DISPOSITION_MAX, disp.value + d));
+    disp.value = Math.max(
+      DISPOSITION_MIN,
+      Math.min(DISPOSITION_MAX, disp.value + d),
+    );
     disp.history.push({ at: Date.now(), delta: d, reason });
     await this.persist();
     return disp;
@@ -116,7 +125,7 @@ export class WorldStateService {
   async removeDisposition(npc: string): Promise<void> {
     this.reload();
     const key = Object.keys(this.state.dispositions).find(
-      k => k.toLowerCase() === npc.toLowerCase(),
+      (k) => k.toLowerCase() === npc.toLowerCase(),
     );
     if (key) {
       delete this.state.dispositions[key];

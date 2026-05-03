@@ -1,7 +1,10 @@
 import type { MoveRegistry } from "./registry";
 import type { WorldStateService } from "../state/WorldStateService";
 
-export function registerStateMoves(registry: MoveRegistry, state: WorldStateService) {
+export function registerStateMoves(
+  registry: MoveRegistry,
+  state: WorldStateService,
+) {
   registry.register({
     schema: {
       name: "advance_clock",
@@ -48,7 +51,11 @@ export function registerStateMoves(registry: MoveRegistry, state: WorldStateServ
       },
     },
     handler: async (args) => {
-      const clock = await state.setClock(args.clockName, args.segments, args.label);
+      const clock = await state.setClock(
+        args.clockName,
+        args.segments,
+        args.label,
+      );
       return {
         ok: true,
         data: { clock },
@@ -60,7 +67,8 @@ export function registerStateMoves(registry: MoveRegistry, state: WorldStateServ
   registry.register({
     schema: {
       name: "remove_clock",
-      description: "Remove a clock that's no longer relevant (resolved, abandoned).",
+      description:
+        "Remove a clock that's no longer relevant (resolved, abandoned).",
       parameters: {
         type: "object",
         properties: { clockName: { type: "string" } },
@@ -93,7 +101,11 @@ export function registerStateMoves(registry: MoveRegistry, state: WorldStateServ
       },
     },
     handler: async (args) => {
-      const disp = await state.shiftDisposition(args.npc, args.delta, args.reason);
+      const disp = await state.shiftDisposition(
+        args.npc,
+        args.delta,
+        args.reason,
+      );
       return {
         ok: true,
         data: { disposition: disp },

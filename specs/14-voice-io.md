@@ -1,7 +1,7 @@
 # #14 Voice I/O — PTT, STT, TTS (v1)
 
-**Status:** not started
-**Last touched:** 2026-05-02 (claude-code)
+**Status:** services + UI landed; awaiting MCP smoke test + hands-on mic verify
+**Last touched:** 2026-05-03 (claude-code)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/14
 **Assignee:** unassigned
 
@@ -108,20 +108,20 @@ Existing `openaiApiKey` covers Whisper and TTS too.
 
 ## Plan
 
-- [ ] 🤖 `src/voice/SpeechToTextProvider.ts` — interface (`transcribe(blob): Promise<string>`).
-- [ ] 🤖 `src/voice/WhisperSttProvider.ts` — Whisper API client using existing `openaiApiKey`.
-- [ ] 🤖 `src/voice/TextToSpeechProvider.ts` — interface (`synthesize(text): Promise<ArrayBuffer>`).
-- [ ] 🤖 `src/voice/OpenAITtsProvider.ts` — OpenAI tts-1 client.
-- [ ] 🤖 `src/voice/AudioPlayer.ts` — queued playback with `interrupt()`.
-- [ ] 🤖 `src/voice/PttController.ts` — `MediaRecorder` lifecycle, repeat-key suppression, mic stream release between utterances.
-- [ ] 🤖 `src/voice/VoiceSession.ts` — wires PTT → STT → dispatcher → TTS → player; exposes `{ status, transcript }`; counters.
-- [ ] 🤖 Register `openaiTtsModel` and `openaiTtsVoice` settings in `main.ts`.
-- [ ] 🤖 Register Foundry keybinding "Talk to Rhapsody" (default `Space`) wired to `PttController`.
-- [ ] 🤖 Instantiate `VoiceSession` in `main.ts` on `ready`.
-- [ ] 🤖 Panel template — voice section (status row, transcript pane, interrupt button).
-- [ ] 🤖 Panel CSS for voice section in `src/styles/rhapsody.css`.
-- [ ] 🤖 `RhapsodyApp` handlers — `interruptTts` action; subscribe to `VoiceSession` status changes to re-render.
-- [ ] 🤖 `npm run build` passes.
+- [x] 🤖 `src/voice/SpeechToTextProvider.ts` — interface (`transcribe(blob): Promise<string>`).
+- [x] 🤖 `src/voice/WhisperSttProvider.ts` — Whisper API client using existing `openaiApiKey`.
+- [x] 🤖 `src/voice/TextToSpeechProvider.ts` — interface (`synthesize(text): Promise<ArrayBuffer>`).
+- [x] 🤖 `src/voice/OpenAITtsProvider.ts` — OpenAI tts-1 client.
+- [x] 🤖 `src/voice/AudioPlayer.ts` — queued playback with `interrupt()`.
+- [x] 🤖 `src/voice/PttController.ts` — `MediaRecorder` lifecycle, repeat-key suppression, mic stream release between utterances.
+- [x] 🤖 `src/voice/VoiceSession.ts` — wires PTT → STT → dispatcher → TTS → player; exposes `{ status, transcript }`; counters.
+- [x] 🤖 Register `openaiTtsModel` and `openaiTtsVoice` settings in `main.ts`.
+- [x] 🤖 Register Foundry keybinding "Talk to Rhapsody" (default `Space`) wired to `PttController`.
+- [x] 🤖 Instantiate `VoiceSession` in `main.ts` on `ready`.
+- [x] 🤖 Panel template — voice section (status row, transcript pane, interrupt button).
+- [x] 🤖 Panel CSS for voice section in `src/styles/rhapsody.css`.
+- [x] 🤖 `RhapsodyApp` handlers — `interruptTts` action; subscribe to `VoiceSession` status changes to re-render.
+- [x] 🤖 `npm run build` passes.
 - [ ] 🧠 Smoke test via `chrome-devtools-mcp`:
   - `new_page` → Foundry world URL; `take_snapshot` to confirm Rhapsody panel renders the voice section.
   - `evaluate_script` to call `voiceSession.handleUtterance("open the door")` directly (bypasses mic perms which MCP can't grant). Assert: transcript pane shows the utterance, GM reply lands, console logs the cost telemetry line.
@@ -132,6 +132,7 @@ Existing `openaiApiKey` covers Whisper and TTS too.
 
 ## Notes
 
+- 2026-05-03: services + main.ts wiring + panel section landed (claude-code). `npm run build` passes. Default PTT key is `Backquote` (the `Space` default would conflict with Foundry scene panning). Whisper duration estimation is best-effort via `<audio>` metadata (webm/opus container → may report Infinity in some browsers; falls back to 0). MCP smoke test + hands-on mic verify still outstanding.
 - **Smoke testing convention.** Every spec from the north-star pivot forward includes a `chrome-devtools-mcp` smoke-test step in its plan. Spec acceptance is "build passes + MCP smoke test passes"; pure hands-on verification (mic, audible TTS, real asset libraries) is called out separately where it can't be automated. The MCP tools live behind the `chrome-devtools-mcp:chrome-devtools` skill.
 - Foundry runs in a browser context — `MediaRecorder` and Web Audio are available without a polyfill.
 - `Space` as default may conflict with Foundry's own bindings (it's used in some scenes). If so, fall back to a less-conflicting default like `Backquote` and document it. The user can rebind anyway via Foundry's UI.

@@ -26,7 +26,9 @@ export class SceneContractService {
     if (!scene) return null;
 
     // @ts-ignore
-    const contract = scene.getFlag(moduleId, "contract") as SceneContract | undefined;
+    const contract = scene.getFlag(moduleId, "contract") as
+      | SceneContract
+      | undefined;
     if (!contract) return null;
 
     // Ensure progress exists
@@ -67,7 +69,10 @@ export class SceneContractService {
   /**
    * Mutates the progress portion of a contract.
    */
-  async recordProgress(sceneId: string, patch: Partial<ContractProgress>): Promise<void> {
+  async recordProgress(
+    sceneId: string,
+    patch: Partial<ContractProgress>,
+  ): Promise<void> {
     const existing = this.read(sceneId);
     if (!existing) return;
 
@@ -80,8 +85,10 @@ export class SceneContractService {
     };
 
     // Special handling for freeform to ensure we don't accidentally wipe it if patch doesn't include it
-    if (patch.cluesRevealed) updatedProgress.cluesRevealed = patch.cluesRevealed;
-    if (patch.complicationsTriggered) updatedProgress.complicationsTriggered = patch.complicationsTriggered;
+    if (patch.cluesRevealed)
+      updatedProgress.cluesRevealed = patch.cluesRevealed;
+    if (patch.complicationsTriggered)
+      updatedProgress.complicationsTriggered = patch.complicationsTriggered;
     if (patch.freeform) updatedProgress.freeform = patch.freeform;
     if (patch.hiddenLeaks) updatedProgress.hiddenLeaks = patch.hiddenLeaks;
 
@@ -93,7 +100,7 @@ export class SceneContractService {
       cluesRevealed: [],
       complicationsTriggered: [],
       freeform: [],
-      hiddenLeaks: []
+      hiddenLeaks: [],
     };
   }
 }

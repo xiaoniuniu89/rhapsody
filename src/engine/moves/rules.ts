@@ -3,24 +3,32 @@ import type { RulesIndexService } from "../rules/RulesIndexService";
 
 export function registerRulesMoves(
   registry: MoveRegistry,
-  rulesIndex: RulesIndexService
+  rulesIndex: RulesIndexService,
 ) {
   registry.register({
     schema: {
       name: "query_rules",
-      description: "Retrieve relevant rules excerpts from indexed compendia. Use this whenever the user asks how a rule works or you need to resolve an action mechanically.",
+      description:
+        "Retrieve relevant rules excerpts from indexed compendia. Use this whenever the user asks how a rule works or you need to resolve an action mechanically.",
       parameters: {
         type: "object",
         properties: {
-          question: { type: "string", description: "The specific rules question to answer." },
-          k: { type: "number", default: 5, description: "Number of excerpts to retrieve." },
+          question: {
+            type: "string",
+            description: "The specific rules question to answer.",
+          },
+          k: {
+            type: "number",
+            default: 5,
+            description: "Number of excerpts to retrieve.",
+          },
         },
         required: ["question"],
       },
     },
     handler: async (args: { question: string; k?: number }) => {
       const hits = await rulesIndex.query(args.question, args.k || 5);
-      
+
       const status = rulesIndex.status();
       if (!status || status.chunkCount === 0) {
         return {

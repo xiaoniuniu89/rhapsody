@@ -5,14 +5,18 @@ export function registerOracleMoves(registry: MoveRegistry) {
   registry.register({
     schema: {
       name: "roll_oracle",
-      description: "Ask a yes/no question to a deterministic oracle. Returns yes, no, or a complication.",
+      description:
+        "Ask a yes/no question to a deterministic oracle. Returns yes, no, or a complication.",
       parameters: {
         type: "object",
         properties: {
-          question: { type: "string", description: "The yes/no question to ask." }
+          question: {
+            type: "string",
+            description: "The yes/no question to ask.",
+          },
         },
-        required: ["question"]
-      }
+        required: ["question"],
+      },
     },
     handler: async (args, _context) => {
       const roll = Math.random();
@@ -25,10 +29,10 @@ export function registerOracleMoves(registry: MoveRegistry) {
         ok: true,
         data: {
           question: args.question,
-          result: result
+          result: result,
         },
-        log: `Oracle: ${args.question} -> ${result}`
+        log: `Oracle: ${args.question} -> ${result}`,
       };
-    }
+    },
   });
 }

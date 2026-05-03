@@ -4,6 +4,7 @@ import { IntrospectionService } from "./engine/IntrospectionService";
 import { MemoryService } from "./memory/MemoryService";
 import { SceneContractService } from "./engine/contract/SceneContractService";
 import { RulesIndexService } from "./engine/rules/RulesIndexService";
+import { AssetIndexService } from "./engine/assets/AssetIndexService";
 import { WorldStateService } from "./engine/state/WorldStateService";
 import { MoveRegistry } from "./engine/moves/registry";
 import { MoveDispatcher } from "./engine/MoveDispatcher";
@@ -13,6 +14,11 @@ import { registerContractMoves } from "./engine/moves/contractMoves";
 import { registerRulesMoves } from "./engine/moves/rules";
 import { registerStateMoves } from "./engine/moves/state";
 import { OpenAIClient } from "./llm/OpenAIClient";
+import { PttController } from "./voice/PttController";
+import { WhisperSttProvider } from "./voice/WhisperSttProvider";
+import { OpenAITtsProvider } from "./voice/OpenAITtsProvider";
+import { AudioPlayer } from "./voice/AudioPlayer";
+import { VoiceSession } from "./voice/VoiceSession";
 import "./styles/rhapsody.css";
 
 let rhapsodyApp: RhapsodyApp;
@@ -21,6 +27,7 @@ export const memory = new MemoryService();
 export const contract = new SceneContractService();
 const client = new OpenAIClient();
 export const rulesIndex = new RulesIndexService(client);
+export const assetIndex = new AssetIndexService();
 export const worldState = new WorldStateService();
 export const moveRegistry = new MoveRegistry();
 
@@ -29,7 +36,24 @@ registerOracleMoves(moveRegistry);
 registerContractMoves(moveRegistry);
 registerRulesMoves(moveRegistry, rulesIndex);
 registerStateMoves(moveRegistry, worldState);
-export const moveDispatcher = new MoveDispatcher(moveRegistry, client, contract, rulesIndex);
+export const moveDispatcher = new MoveDispatcher(
+  moveRegistry,
+  client,
+  contract,
+  rulesIndex,
+);
+
+const pttController = new PttController();
+const sttProvider = new WhisperSttProvider();
+const ttsProvider = new OpenAITtsProvider();
+const audioPlayer = new AudioPlayer();
+export const voiceSession = new VoiceSession(
+  pttController,
+  sttProvider,
+  ttsProvider,
+  audioPlayer,
+  moveDispatcher,
+);
 
 Hooks.once("init", () => {
   if (!game.settings) return;
@@ -85,6 +109,41 @@ Hooks.once("init", () => {
     type: Object,
     default: [],
   });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "openaiTtsModel", {
+    name: "OpenAI TTS Model",
+    hint: "OpenAI TTS model id, e.g. tts-1.",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "tts-1",
+  });
+
+  // @ts-ignore
+  game.settings.register(moduleId, "openaiTtsVoice", {
+    name: "OpenAI TTS Voice",
+    hint: "Voice id: alloy, echo, fable, onyx, nova, shimmer.",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "alloy",
+  });
+
+  // @ts-ignore
+  game.keybindings.register(moduleId, "talkToRhapsody", {
+    name: "Talk to Rhapsody",
+    hint: "Hold to speak to the Rhapsody GM.",
+    editable: [{ key: "Backquote" }],
+    onDown: () => {
+      void voiceSession.startListening();
+      return true;
+    },
+    onUp: () => {
+      voiceSession.stopListening();
+      return true;
+    },
+  });
 });
 
 Hooks.once("ready", async () => {
@@ -95,6 +154,8 @@ Hooks.once("ready", async () => {
   console.log("🎵 Rhapsody memory ready", memory.folderIds);
   await rulesIndex.init();
   console.log("🎵 Rhapsody rules index ready", rulesIndex.status());
+  await assetIndex.init();
+  console.log("🎵 Rhapsody asset index ready", assetIndex.status());
   worldState.init();
   console.log("🎵 Rhapsody world state ready", worldState.snapshot());
 

@@ -20,7 +20,7 @@ export class MoveDispatcher {
     registry: MoveRegistry,
     client: OpenAIClient,
     contractService: SceneContractService,
-    rulesIndex: RulesIndexService
+    rulesIndex: RulesIndexService,
   ) {
     this.registry = registry;
     this.client = client;
@@ -31,12 +31,16 @@ export class MoveDispatcher {
   async runTurn(playerMessage: string): Promise<TurnResult> {
     const activeContract = this.contractService.active();
     const rulesStatus = this.rulesIndex.status();
-    
-    const systemPrompt = ["You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player.",
-      "\nWorld state mutations (clocks, NPC dispositions) must go through advance_clock, set_clock, shift_disposition. Call read_state first to inspect existing entries so you advance/shift instead of creating duplicates. Do not invent state in narration — use these moves so changes persist."];
+
+    const systemPrompt = [
+      "You are an expert Game Master. Use the provided tools to retrieve world information, log events, and resolve actions. Narrate the result to the player.",
+      "\nWorld state mutations (clocks, NPC dispositions) must go through advance_clock, set_clock, shift_disposition. Call read_state first to inspect existing entries so you advance/shift instead of creating duplicates. Do not invent state in narration — use these moves so changes persist.",
+    ];
 
     if (rulesStatus && rulesStatus.chunkCount > 0) {
-      systemPrompt.push("\nWhen you cite a rule in your narration, include the citation string from the tool result verbatim. Foundry will render it as a clickable link.");
+      systemPrompt.push(
+        "\nWhen you cite a rule in your narration, include the citation string from the tool result verbatim. Foundry will render it as a clickable link.",
+      );
     }
 
     if (activeContract) {
@@ -45,15 +49,17 @@ export class MoveDispatcher {
       systemPrompt.push(`Goal/Question: ${contract.question}`);
       if (contract.onOffer.length > 0) {
         systemPrompt.push("Information/Clues available to reveal:");
-        contract.onOffer.forEach(c => systemPrompt.push(`- ${c.text} (id: ${c.id})`));
+        contract.onOffer.forEach((c) =>
+          systemPrompt.push(`- ${c.text} (id: ${c.id})`),
+        );
       }
       if (contract.hidden.length > 0) {
         systemPrompt.push("STRICTLY HIDDEN (Do NOT reveal these yet):");
-        contract.hidden.forEach(h => systemPrompt.push(`- ${h}`));
+        contract.hidden.forEach((h) => systemPrompt.push(`- ${h}`));
       }
       if (contract.exits.length > 0) {
         systemPrompt.push("Available scene exits:");
-        contract.exits.forEach(e => systemPrompt.push(`- ${e}`));
+        contract.exits.forEach((e) => systemPrompt.push(`- ${e}`));
       }
       systemPrompt.push("### END CONTRACT");
     }
@@ -61,9 +67,9 @@ export class MoveDispatcher {
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: systemPrompt.join("\n")
+        content: systemPrompt.join("\n"),
       },
-      { role: "user", content: playerMessage }
+      { role: "user", content: playerMessage },
     ];
 
     const tools = this.registry.toolSchemas();
@@ -77,13 +83,16 @@ export class MoveDispatcher {
         sceneId: activeContract?.sceneId ?? null,
         recordProgress: async (patch: any) => {
           if (activeContract) {
-            await this.contractService.recordProgress(activeContract.sceneId, patch);
+            await this.contractService.recordProgress(
+              activeContract.sceneId,
+              patch,
+            );
             // Update local context for subsequent tool calls in the same turn
             const updated = this.contractService.read(activeContract.sceneId);
             if (updated) context.contract.active = updated;
           }
-        }
-      }
+        },
+      },
     };
 
     for (let step = 0; step < MAX_STEPS; step++) {
@@ -97,22 +106,28 @@ export class MoveDispatcher {
       // Add assistant message to history for potential next loop
       messages.push({
         ...message,
-        content: message.content || ""
+        content: message.content || "",
       });
 
       if (message.content) {
         narration = message.content;
-        
+
         // Hidden leak detection
         if (activeContract && activeContract.contract.hidden.length > 0) {
           const lowerNarration = narration.toLowerCase();
-          const leaks = activeContract.contract.hidden.filter(h => 
-            lowerNarration.includes(h.toLowerCase())
+          const leaks = activeContract.contract.hidden.filter((h) =>
+            lowerNarration.includes(h.toLowerCase()),
           );
           if (leaks.length > 0) {
-            console.warn("🎵 Rhapsody: Hidden leak detected in narration!", leaks);
+            console.warn(
+              "🎵 Rhapsody: Hidden leak detected in narration!",
+              leaks,
+            );
             await this.contractService.recordProgress(activeContract.sceneId, {
-              hiddenLeaks: [...(context.contract.active?.progress.hiddenLeaks || []), ...leaks]
+              hiddenLeaks: [
+                ...(context.contract.active?.progress.hiddenLeaks || []),
+                ...leaks,
+              ],
             });
           }
         }
@@ -156,7 +171,7 @@ export class MoveDispatcher {
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: JSON.stringify(resultData ?? { ok, log })
+            content: JSON.stringify(resultData ?? { ok, log }),
           });
         }
         // Continue loop to give model a chance to respond to tool results

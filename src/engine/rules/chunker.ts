@@ -12,7 +12,7 @@ export function chunkPage(
     entryName: string;
     pageId: string;
     pageName: string;
-  }
+  },
 ): Partial<IndexedChunk>[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(content, "text/html");

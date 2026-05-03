@@ -55,7 +55,9 @@ export class RulesIndexService {
       if (pack.documentName !== "JournalEntry") continue;
 
       const entries = await pack.getDocuments();
-      onProgress?.(`Chunking ${pack.metadata.label} (${entries.length} entries)...`);
+      onProgress?.(
+        `Chunking ${pack.metadata.label} (${entries.length} entries)...`,
+      );
 
       for (const entry of entries) {
         // @ts-ignore
@@ -79,9 +81,11 @@ export class RulesIndexService {
 
     for (let i = 0; i < allChunks.length; i += batchSize) {
       const batch = allChunks.slice(i, i + batchSize);
-      onProgress?.(`Embedding chunks ${i + 1} to ${Math.min(i + batchSize, allChunks.length)} of ${allChunks.length}...`);
-      
-      const texts = batch.map(c => c.text!);
+      onProgress?.(
+        `Embedding chunks ${i + 1} to ${Math.min(i + batchSize, allChunks.length)} of ${allChunks.length}...`,
+      );
+
+      const texts = batch.map((c) => c.text!);
       const embeddings = await this.client.embed(texts);
 
       for (let j = 0; j < batch.length; j++) {
@@ -124,15 +128,19 @@ export class RulesIndexService {
 
   private async loadIndex(): Promise<IndexFile | null> {
     // @ts-ignore
-    const folder = game.folders.find(f => f.name === "Rhapsody System" && f.type === "JournalEntry");
+    const folder = game.folders.find(
+      (f) => f.name === "Rhapsody System" && f.type === "JournalEntry",
+    );
     if (!folder) return null;
 
     // @ts-ignore
-    const entry = game.journal.find(j => j.name === "Rhapsody Rules Index" && j.folder?.id === folder.id);
+    const entry = game.journal.find(
+      (j) => j.name === "Rhapsody Rules Index" && j.folder?.id === folder?.id,
+    );
     if (!entry) return null;
 
     // @ts-ignore
-    const page = entry.pages.find(p => p.name === "Index");
+    const page = entry.pages.find((p) => p.name === "Index");
     if (!page) return null;
 
     try {
@@ -148,35 +156,47 @@ export class RulesIndexService {
 
   private async saveIndex(index: IndexFile): Promise<void> {
     // @ts-ignore
-    let folder = game.folders.find(f => f.name === "Rhapsody System" && f.type === "JournalEntry");
+    let folder = game.folders.find(
+      (f) => f.name === "Rhapsody System" && f.type === "JournalEntry",
+    );
     if (!folder) {
       // @ts-ignore
-      folder = await Folder.create({ name: "Rhapsody System", type: "JournalEntry" });
+      folder = await Folder.create({
+        name: "Rhapsody System",
+        type: "JournalEntry",
+      });
     }
 
     // @ts-ignore
-    let entry = game.journal.find(j => j.name === "Rhapsody Rules Index" && j.folder?.id === folder.id);
+    let entry = game.journal.find(
+      (j) => j.name === "Rhapsody Rules Index" && j.folder?.id === folder?.id,
+    );
     if (!entry) {
       // @ts-ignore
-      entry = await JournalEntry.create({ name: "Rhapsody Rules Index", folder: folder.id });
+      entry = await JournalEntry.create({
+        name: "Rhapsody Rules Index",
+        folder: folder?.id,
+      });
     }
 
     const json = JSON.stringify(index);
     const content = `<pre id="rhapsody-index">${json}</pre>`;
 
     // @ts-ignore
-    const page = entry.pages.find(p => p.name === "Index");
+    const page = entry.pages.find((p) => p.name === "Index");
     if (page) {
       // @ts-ignore
       await page.update({ "text.content": content });
     } else {
       // @ts-ignore
-      await entry.createEmbeddedDocuments("JournalEntryPage", [{
-        name: "Index",
-        type: "text",
-        // @ts-ignore
-        text: { content, format: 1 }
-      }]);
+      await entry.createEmbeddedDocuments("JournalEntryPage", [
+        {
+          name: "Index",
+          type: "text",
+          // @ts-ignore
+          text: { content, format: 1 },
+        },
+      ]);
     }
   }
 }

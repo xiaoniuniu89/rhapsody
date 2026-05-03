@@ -1,7 +1,7 @@
 # #15 Stagecraft moves — map, token, audio, lighting, camera (v1)
 
-**Status:** not started
-**Last touched:** 2026-05-02 (claude-code)
+**Status:** spec sharpened, ready for impl
+**Last touched:** 2026-05-03 (claude-code)
 **Issue:** https://github.com/xiaoniuniu89/rhapsody/issues/15
 **Assignee:** unassigned
 
@@ -10,7 +10,7 @@
 The GM runs Foundry, not just text. New GM moves let the model push maps, drop tokens, play music, change lighting, and pan the camera as part of a single dispatcher turn. Per #1 north star: *the user just plays.*
 
 Acceptance:
-- Six new moves registered in the dispatcher catalog (#6), all consuming the asset index (#10) for query-form resolution:
+- Seven new moves registered in the dispatcher catalog (#6), all consuming the asset index (#10) for query-form resolution:
   - `set_scene_map(query | sceneId)`
   - `place_token(actor, x?, y?)`
   - `remove_token(tokenId)`
@@ -65,26 +65,34 @@ Resolution flow for query forms:
 
 ### Move definitions
 
-`src/engine/moves/stagecraft.ts`, registered via `registerStagecraftMoves(registry, stagecraft)`. Each move follows the existing `MoveDefinition` contract:
+`src/engine/moves/stagecraft.ts`, registered via `registerStagecraftMoves(registry, stagecraft)`. Each move follows the existing registered-move shape (see `src/engine/moves/types.ts` and the pattern in `src/engine/moves/state.ts`):
 
 ```ts
-{
-  name: "set_scene_map",
-  description: "Switch to a different map by description (e.g. 'tavern interior') or specific scene id.",
-  schema: { /* JSON schema for { query?: string, sceneId?: string } */ },
-  availableIn: ["play", "prep"],   // (#9) — both modes; map/audio/lighting are reactive in Play and authoring in Prep
+registry.register({
+  schema: {
+    name: "set_scene_map",
+    description:
+      "Switch to a different map by description (e.g. 'tavern interior') or specific scene id.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        sceneId: { type: "string" },
+      },
+    },
+  },
   handler: async (args) => {
     try {
       const r = await stagecraft.setSceneMap(args);
       return { ok: true, log: `Switched scene to "${r.scene.name}"`, data: { sceneId: r.scene.id } };
     } catch (e) {
-      return { ok: false, log: String(e.message), data: null };
+      return { ok: false, log: (e as Error).message };
     }
   },
-}
+});
 ```
 
-Same shape for the other six.
+Same shape for the other six. There is no `availableIn` field on registered moves today — Play/Prep gating is deferred to #9.
 
 ### System prompt addendum
 
